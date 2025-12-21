@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <title>SOC Toolkit</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <style>
     body {
         background-color: #000;
@@ -10,6 +11,7 @@
         font-family: "Courier New", monospace;
         padding: 20px;
         text-align: center;
+        margin: 0;
     }
     input, button {
         background-color: #111;
@@ -20,8 +22,9 @@
         font-family: "Courier New", monospace;
         margin: 5px;
         cursor: pointer;
+        box-sizing: border-box;
     }
-    input { width: 300px; }
+    input { width: 300px; max-width: 90%; }
     button:hover { background-color: #222; }
     #results {
         margin-top: 20px;
@@ -29,6 +32,7 @@
         flex-wrap: wrap;
         gap: 12px;
         justify-content: center;
+        padding: 0 10px;
     }
     .link-card {
         display: flex;
@@ -58,6 +62,25 @@
     .link-card:hover span.url {
         color: #000;
     }
+
+    /* Responsive */
+    @media (max-width: 600px) {
+        #results {
+            flex-direction: column;
+            align-items: center;
+        }
+        .link-card {
+            min-width: 90%;
+            max-width: 95%;
+        }
+        input, button {
+            width: 90%;
+            font-size: 16px;
+        }
+        pre {
+            font-size: 10px;
+        }
+    }
 </style>
 </head>
 <body>
@@ -70,7 +93,7 @@
 ███████║╚██████╔╝╚██████╗        ██║   ╚██████╔╝╚██████╔╝███████╗██║  ██╗██║   ██║   
 ╚══════╝ ╚═════╝  ╚═════╝        ╚═╝    ╚═════╝  ╚═════╝ ╚══════╝╚═╝  ╚═╝╚═╝   ╚═╝   
 
-                                                Coded by <a href="https://www.linkedin.com/in/jimmybianco" target="_blank" style="color:#00ff00; text-decoration:none;">Jimmy Bianco</a> - v20251221
+Coded by <a href="https://www.linkedin.com/in/jimmybianco" target="_blank" style="color:#00ff00; text-decoration:none;">Jimmy Bianco</a> - v20251221
 </pre>
 
 <div>
@@ -247,5 +270,3 @@ document.getElementById("openAll").onclick = async ()=>{
 </script>
 </body>
 </html>
-
-
