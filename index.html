@@ -82,9 +82,29 @@
             font-size: 10px;
         }
     }
+    /* Boot */
+    #bootScreen {
+        height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    #bootOutput {
+        text-align: left;
+        font-size: 14px;
+        line-height: 1.4;
+        white-space: pre-wrap;
+    }
+
 </style>
 </head>
 <body>
+<div id="bootScreen">
+    <pre id="bootOutput"></pre>
+</div>
+
+<div id="app" style="display:none;">
 
 <pre>
 ███████╗ ██████╗  ██████╗     ████████╗ ██████╗  ██████╗ ██╗     ██╗  ██╗██╗████████╗
@@ -325,6 +345,42 @@ openAll.onclick=async()=>{
         window.open(src.url.replace("{data}",p),"_blank");
     }
 };
+
+const bootLines = [
+    "[ OK ] Starting server..",
+    "[ OK ] Initializing SOC Toolkit core",
+    "[ OK ] Loading modules..",
+    "[ OK ] Initializing language engine",
+    "[ OK ] Initializing routing",
+    "[ OK ] Checking service availability",
+    "[ OK ] Establishing secure environment",
+    "[ OK ] Coded by Jimmy Bianco",
+    "[ OK ] SOC Toolkit ready",
+    "[ OK ] Redirecting to soctoolkit.com"
+];
+
+let line = 0;
+const bootEl = document.getElementById("bootOutput");
+const appEl = document.getElementById("app");
+const queryInput = document.getElementById("inputData");
+
+function bootSequence() {
+    if (line < bootLines.length) {
+        bootEl.textContent += bootLines[line] + "\n";
+        line++;
+        setTimeout(bootSequence, 350);
+    } else {
+        setTimeout(() => {
+            document.getElementById("bootScreen").style.display = "none";
+            appEl.style.display = "block";
+            queryInput.focus();
+        }, 500);
+    }
+}
+
+window.onload = bootSequence;
+
 </script>
+</div>
 </body>
 </html>
