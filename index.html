@@ -94,7 +94,7 @@
 ███████║╚██████╔╝╚██████╗        ██║   ╚██████╔╝╚██████╔╝███████╗██║  ██╗██║   ██║   
 ╚══════╝ ╚═════╝  ╚═════╝        ╚═╝    ╚═════╝  ╚═════╝ ╚══════╝╚═╝  ╚═╝╚═╝   ╚═╝   
 
-Coded by <a href="https://www.linkedin.com/in/jimmybianco" target="_blank" style="color:#00ff00; text-decoration:none;">Jimmy Bianco</a> - v20251221
+Coded by <a href="https://www.linkedin.com/in/jimmybianco" target="_blank" style="color:#00ff00; text-decoration:none;">Jimmy Bianco</a> - v20251222
 </pre>
 
 <div>
@@ -103,10 +103,17 @@ Coded by <a href="https://www.linkedin.com/in/jimmybianco" target="_blank" style
     <button id="openAll">Open All</button>
 </div>
 
+<br>
+
+<div id="normalizedInfo">
+<div id="normalValue"></div>
+<div id="defangedValue" style="cursor:pointer;"></div>
+</div>
+
 <div id="results"></div>
 
 <script>
-// Fuentes
+/* ============== SOURCES ============== */
 const sources = {
     ipv4: [
         {name:"VirusTotal", url:"https://www.virustotal.com/gui/ip-address/{data}"},
@@ -195,7 +202,25 @@ const sources = {
     ]
 };
 
-// Detectores
+
+/* ================= DEFANG ================= */
+function normalizeDefang(v){
+    return v
+        .replace(/^hxxps?:\/\//i,m=>m.toLowerCase().replace("hxxp","http"))
+        .replace(/\[\.\]|\(\.\)|\{\.\}/g,".")
+        .trim();
+}
+function defangValue(v){
+    return v
+        .replace(/^https?:\/\//i,m=>m.toLowerCase().replace("http","hxxp"))
+        .replace(/\./g,"[.]");
+}
+
+function copyToClipboard(text){
+    navigator.clipboard.writeText(text);
+}
+
+/* ============== DETECTORS ============== */
 function isIPv4(i){ return /^(25[0-5]|2[0-4]\d|1\d{2}|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d{2}|[1-9]?\d)){3}$/.test(i); }
 function isIPv6(i){ return /^([0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}$/.test(i); }
 function isURL(i){ return /^https?:\/\/[^\s]+$/.test(i); }
@@ -213,7 +238,7 @@ function detectType(input){
     return "text";
 }
 
-// Utilidades
+/* ================= UTILITIES ================= */
 function emailDomain(email){ return email.split("@")[1].toLowerCase(); }
 function urlDomain(url){
     try {
@@ -228,53 +253,78 @@ async function sha256(input){
     return [...new Uint8Array(buf)].map(b=>b.toString(16).padStart(2,"0")).join("");
 }
 
-// Normalización central
-async function prepareData(input, type, src){
-    let data = input;
-
-    if(type==="url" && src.needsHash) data = await sha256(input);
+/* ================= NORMALIZATION ================= */
+async function prepareData(input,type,src){
+    let data=input;
+    if(type==="url"&&src.needsHash)data=await sha256(input);
     if(src.usesDomain){
-        if(type==="email") data = emailDomain(input);
-        else if(type==="url") data = urlDomain(input);
+        if(type==="email")data=emailDomain(input);
+        else if(type==="url")data=urlDomain(input);
     }
-    if(src.encode !== false) data = encodeURIComponent(data);
-
+    if(src.encode!==false)data=encodeURIComponent(data);
     return data;
 }
 
-// Render
-async function renderLinks(input){
-    const type = detectType(input);
-    const results = document.getElementById("results");
-    results.innerHTML = "";
+/* ================= RENDER ================= */
+async function renderLinks(raw){
+    if(!raw)return;
+    const normalized=normalizeDefang(raw);
+    const defanged=defangValue(normalized);
+    const type=detectType(normalized);
+
+    document.getElementById("results").innerHTML="";
+
+    if(["ipv4","ipv6","url","domain"].includes(type)){
+        normalValue.innerHTML=`<strong>Normal:</strong> <span id="normalText" style="cursor:pointer;">${normalized}</span>`;
+        defangedValue.innerHTML = `<strong>Defanged:</strong> <span id="defangText">${defanged}</span>`;
+
+        const normalSpan = document.getElementById("normalText");
+        normalSpan.onclick = () => {
+            navigator.clipboard.writeText(normalized);
+
+            const original = normalSpan.innerText;
+            normalSpan.innerText = "Copied!";
+            setTimeout(() => normalSpan.innerText = original, 1000);
+        };
+
+        const defangSpan = document.getElementById("defangText");
+        defangSpan.onclick = () => {
+            navigator.clipboard.writeText(defanged);
+
+            const original = defangSpan.innerText;
+            defangSpan.innerText = "Copied!";
+            setTimeout(() => defangSpan.innerText = original, 1000);
+        };
+
+        normalizedInfo.style.display="block";
+    }else normalizedInfo.style.display="none";
 
     for(const src of sources[type]){
-        const prepared = await prepareData(input, type, src);
-        const a = document.createElement("a");
-        a.href = src.url.replace("{data}", prepared);
-        a.target = "_blank";
-        a.className = "link-card";
-        a.innerHTML = `<strong>${src.name}</strong><span class="url">${a.href}</span>`;
+        const p=await prepareData(normalized,type,src);
+        const a=document.createElement("a");
+        a.href=src.url.replace("{data}",p);
+        a.target="_blank";
+        a.className="link-card";
+        a.innerHTML=`<strong>${src.name}</strong><span class="url">${a.href}</span>`;
         results.appendChild(a);
     }
 }
 
-// Eventos
-const inputEl = document.getElementById("inputData");
-document.getElementById("lookupBtn").onclick = ()=>renderLinks(inputEl.value.trim());
-inputEl.onkeypress = e=>{ if(e.key==="Enter") renderLinks(inputEl.value.trim()); };
+/* ================= EVENTS ================= */
+lookupBtn.onclick=()=>renderLinks(inputData.value.trim());
+inputData.onkeypress=e=>{if(e.key==="Enter")renderLinks(inputData.value.trim());};
 
-document.getElementById("openAll").onclick = async ()=>{
-    const val = inputEl.value.trim();
-    const type = detectType(val);
-    for(const src of sources[type]){
-        if (src.openAll === false) continue;
-        const prepared = await prepareData(val, type, src);
-        window.open(src.url.replace("{data}", prepared), "_blank");
+openAll.onclick=async()=>{
+    const raw=inputData.value.trim();
+    if(!raw)return;
+    const n=normalizeDefang(raw);
+    const t=detectType(n);
+    for(const src of sources[t]){
+        if(src.openAll===false)continue;
+        const p=await prepareData(n,t,src);
+        window.open(src.url.replace("{data}",p),"_blank");
     }
 };
 </script>
 </body>
 </html>
-
-
