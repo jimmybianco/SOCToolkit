@@ -6,7 +6,7 @@ const sources = {
         {name:"Talos", url:"https://talosintelligence.com/reputation_center/lookup?search={data}"},
         {name:"IBM X-Force", url:"https://exchange.xforce.ibmcloud.com/ip/{data}"},
         {name:"AlienVault OTX", url:"https://otx.alienvault.com/indicator/ip/{data}"},
-        {name:"Blackist Checker", url:"https://blacklistchecker.com/check?input={data}", usesDomain:false, encode:false},
+        {name:"Blacklist Checker", url:"https://blacklistchecker.com/check?input={data}", usesDomain:false, encode:false},
         {name:"Shodan", url:"https://www.shodan.io/search?query={data}"},
         {name:"Censys", url:"https://search.censys.io/hosts/{data}"},
         {name:"GreyNoise", url:"https://www.greynoise.io/viz/ip/{data}"},
@@ -18,7 +18,7 @@ const sources = {
         {name:"Talos", url:"https://talosintelligence.com/reputation_center/lookup?search={data}"},
         {name:"IBM X-Force", url:"https://exchange.xforce.ibmcloud.com/ip/{data}"},
         {name:"AlienVault OTX", url:"https://otx.alienvault.com/indicator/ip/{data}"},
-        {name:"Blackist Checker", url:"https://blacklistchecker.com/check?input={data}", usesDomain:false, encode:false},
+        {name:"Blacklist Checker", url:"https://blacklistchecker.com/check?input={data}", usesDomain:false, encode:false},
         {name:"Shodan", url:"https://www.shodan.io/search?query={data}"},
         {name:"Censys", url:"https://search.censys.io/hosts/{data}"},
         {name:"GreyNoise", url:"https://www.greynoise.io/viz/ip/{data}"},
@@ -30,13 +30,16 @@ const sources = {
         {name:"IBM X-Force", url:"https://exchange.xforce.ibmcloud.com/url/{data}"},
         {name:"AlienVault OTX", url:"https://otx.alienvault.com/indicator/url/{data}",encode:false},
         {name:"URLScan", url:"https://urlscan.io/search/#{data}", encode:false, usesDomain:true},
-        {name:"Blackist Checker", url:"https://blacklistchecker.com/check?input={data}", usesDomain:true, encode:false},
+        {name:"Blacklist Checker", url:"https://blacklistchecker.com/check?input={data}", usesDomain:true, encode:false},
         {name:"URLVoid", url:"https://urlvoid.com/scan/{data}/", usesDomain:true, openAll:false},
         {name:"URLHaus", url:"https://urlhaus.abuse.ch/browse.php?search={data}",encode:false, openAll:false},
+        {name:"Netcraft", url:"https://sitereport.netcraft.com/?url={data}", openAll:false},
         {name:"Web Check", url:"https://web-check.xyz/check/{data}", openAll:false},
         {name:"SecurityTrails - DNS", url:"https://securitytrails.com/domain/{data}", usesDomain:true, openAll:false},
         {name:"WHOIS", url:"https://www.whois.com/whois/{data}", usesDomain:true},
         {name:"Phishing Checker", url:"https://phishing.finsin.cl/list.php", encode:false, openAll:false},
+        {name:"Wayback Machine", url:"https://web.archive.org/web/{data}", openAll:false},
+        {name:"Wayback Machine (Save)", url:"https://web.archive.org/save/{data}", openAll:false},
         {name:"Browserling", url:"https://www.browserling.com/browse/win10/chrome138/{data}", encode:false, openAll:false},
         {name:"AnyRun", url:"https://app.any.run/safe/{data}", encode:false, openAll:false}
     ],
@@ -46,13 +49,16 @@ const sources = {
         {name:"IBM X-Force", url:"https://exchange.xforce.ibmcloud.com/url/{data}"},
         {name:"AlienVault OTX", url:"https://otx.alienvault.com/indicator/url/{data}"},
         {name:"URLScan", url:"https://urlscan.io/search/#{data}", encode:false},
-        {name:"Blackist Checker", url:"https://blacklistchecker.com/check?input={data}", usesDomain:true, encode:false},
+        {name:"Blacklist Checker", url:"https://blacklistchecker.com/check?input={data}", usesDomain:true, encode:false},
         {name:"URLVoid", url:"https://urlvoid.com/scan/{data}/", openAll:false},
         {name:"URLHaus", url:"https://urlhaus.abuse.ch/browse.php?search={data}", openAll:false},
+        {name:"Netcraft", url:"https://sitereport.netcraft.com/?url={data}", openAll:false},
         {name:"Web Check", url:"https://web-check.xyz/check/{data}", openAll:false},
         {name:"SecurityTrails - DNS", url:"https://securitytrails.com/domain/{data}", openAll:false},
         {name:"WHOIS", url:"https://www.whois.com/whois/{data}"},
         {name:"Phishing Checker", url:"https://phishing.finsin.cl/list.php", encode:false, openAll:false},
+        {name:"Wayback Machine", url:"https://web.archive.org/web/{data}", openAll:false},
+        {name:"Wayback Machine (Save)", url:"https://web.archive.org/save/{data}", openAll:false},
         {name:"Browserling", url:"https://www.browserling.com/browse/win10/chrome138/{data}", encode:false, openAll:false},
         {name:"AnyRun", url:"https://app.any.run/safe/{data}", encode:false, openAll:false}
     ],
@@ -82,6 +88,7 @@ const sources = {
         {name:"Exploit DB", url:"https://www.exploit-db.com/search?q={data}", openAll:false},
         {name:"Windows EventID", url:"https://www.ultimatewindowssecurity.com/securitylog/encyclopedia/event.aspx?eventid={data}", openAll:false},
         {name:"Microsoft ErrorCode", url:"https://login.microsoftonline.com/error", encode:false, openAll:false},
+        {name:"WikiLeaks", url:"https://search.wikileaks.org/?query={data}", encode:false, openAll:false},
         {name:"CyberChef", url:"https://gchq.github.io/CyberChef/", encode:false, openAll:false},
         {name:"MXToolBox - EmailHeaders", url:"https://mxtoolbox.com/EmailHeaders.aspx", encode:false, openAll:false},
     ]
@@ -274,3 +281,4 @@ themeBtn.addEventListener("click", () => {
     const next = current === "hacker" ? "modern" : "hacker";
     applyTheme(next);
 });
+
