@@ -31,17 +31,17 @@ const sources = {
         {name:"AlienVault OTX", url:"https://otx.alienvault.com/indicator/url/{data}",encode:false},
         {name:"URLScan", url:"https://urlscan.io/search/#{data}", encode:false, usesDomain:true},
         {name:"Blacklist Checker", url:"https://blacklistchecker.com/check?input={data}", usesDomain:true, encode:false},
-        {name:"URLVoid", url:"https://urlvoid.com/scan/{data}/", usesDomain:true, openAll:false},
-        {name:"URLHaus", url:"https://urlhaus.abuse.ch/browse.php?search={data}",encode:false, openAll:false},
-        {name:"Netcraft", url:"https://sitereport.netcraft.com/?url={data}", openAll:false},
-        {name:"Web Check", url:"https://web-check.xyz/check/{data}", openAll:false},
-        {name:"SecurityTrails - DNS", url:"https://securitytrails.com/domain/{data}", usesDomain:true, openAll:false},
+        {name:"URLVoid", url:"https://urlvoid.com/scan/{data}/", usesDomain:true, noWWW:true},
+        {name:"URLHaus", url:"https://urlhaus.abuse.ch/browse.php?search={data}",encode:false},
+        {name:"Netcraft", url:"https://sitereport.netcraft.com/?url={data}"},
+        {name:"Web Check", url:"https://web-check.xyz/check/{data}"},
+        {name:"SecurityTrails - DNS", url:"https://securitytrails.com/domain/{data}", usesDomain:true},
         {name:"WHOIS", url:"https://www.whois.com/whois/{data}", usesDomain:true},
-        {name:"Phishing Checker", url:"https://phishing.finsin.cl/list.php", encode:false, openAll:false},
-        {name:"Wayback Machine", url:"https://web.archive.org/web/{data}", openAll:false},
-        {name:"Wayback Machine (Save)", url:"https://web.archive.org/save/{data}", openAll:false},
-        {name:"Browserling", url:"https://www.browserling.com/browse/win10/chrome138/{data}", encode:false, openAll:false},
-        {name:"AnyRun", url:"https://app.any.run/safe/{data}", encode:false, openAll:false}
+        {name:"Wayback Machine", url:"https://web.archive.org/web/{data}"},
+        {name:"Wayback Machine (Save)", url:"https://web.archive.org/save/{data}"},
+        {name:"Browserling", url:"https://www.browserling.com/browse/win10/chrome138/{data}", encode:false},
+        {name:"AnyRun", url:"https://app.any.run/safe/{data}", encode:false},
+        {name:"Phishing Checker", url:"https://phishing.finsin.cl/list.php", encode:false},
     ],
     domain: [
         {name:"VirusTotal", url:"https://www.virustotal.com/gui/domain/{data}"},
@@ -50,17 +50,17 @@ const sources = {
         {name:"AlienVault OTX", url:"https://otx.alienvault.com/indicator/url/{data}"},
         {name:"URLScan", url:"https://urlscan.io/search/#{data}", encode:false},
         {name:"Blacklist Checker", url:"https://blacklistchecker.com/check?input={data}", usesDomain:true, encode:false},
-        {name:"URLVoid", url:"https://urlvoid.com/scan/{data}/", openAll:false},
-        {name:"URLHaus", url:"https://urlhaus.abuse.ch/browse.php?search={data}", openAll:false},
-        {name:"Netcraft", url:"https://sitereport.netcraft.com/?url={data}", openAll:false},
-        {name:"Web Check", url:"https://web-check.xyz/check/{data}", openAll:false},
-        {name:"SecurityTrails - DNS", url:"https://securitytrails.com/domain/{data}", openAll:false},
+        {name:"URLVoid", url:"https://urlvoid.com/scan/{data}/", noWWW:true},
+        {name:"URLHaus", url:"https://urlhaus.abuse.ch/browse.php?search={data}"},
+        {name:"Netcraft", url:"https://sitereport.netcraft.com/?url={data}"},
+        {name:"Web Check", url:"https://web-check.xyz/check/{data}"},
+        {name:"SecurityTrails - DNS", url:"https://securitytrails.com/domain/{data}"},
         {name:"WHOIS", url:"https://www.whois.com/whois/{data}"},
-        {name:"Phishing Checker", url:"https://phishing.finsin.cl/list.php", encode:false, openAll:false},
-        {name:"Wayback Machine", url:"https://web.archive.org/web/{data}", openAll:false},
-        {name:"Wayback Machine (Save)", url:"https://web.archive.org/save/{data}", openAll:false},
-        {name:"Browserling", url:"https://www.browserling.com/browse/win10/chrome138/{data}", encode:false, openAll:false},
-        {name:"AnyRun", url:"https://app.any.run/safe/{data}", encode:false, openAll:false}
+        {name:"Wayback Machine", url:"https://web.archive.org/web/{data}"},
+        {name:"Wayback Machine (Save)", url:"https://web.archive.org/save/{data}"},
+        {name:"Browserling", url:"https://www.browserling.com/browse/win10/chrome138/{data}", encode:false},
+        {name:"AnyRun", url:"https://app.any.run/safe/{data}", encode:false},
+        {name:"Phishing Checker", url:"https://phishing.finsin.cl/list.php", encode:false},
     ],
     hash: [
         {name:"VirusTotal", url:"https://www.virustotal.com/gui/file/{data}"},
@@ -73,24 +73,24 @@ const sources = {
         {name:"AlienVault OTX", url:"https://otx.alienvault.com/indicator/file/{data}"},
     ],
     email: [
+        {name:"Blackist Checker", url:"https://blacklistchecker.com/check?input={data}", usesDomain:false, encode:false},
         {name:"Have I Been Pwned", url:"https://haveibeenpwned.com/unifiedsearch/{data}", usesDomain:false},
         {name:"Intelbase", url:"https://intelbase.is/", usesDomain:true, encode:false},
-        {name:"Blackist Checker", url:"https://blacklistchecker.com/check?input={data}", usesDomain:false, encode:false},
     ],
     text: [
-        {name:"Google", url:"https://www.google.com/search?q={data}", openAll:false},
-        {name:"Translate", url:"https://translate.google.com/?sl=auto&tl=en&text={data}&op=translate", openAll:false},
-        {name:"LOLBAS", url:"https://lolbas-project.github.io/#{data}", encode:false, openAll:false},
-        {name:"GTFOBins", url:"https://gtfobins.github.io/#{data}", encode:false, openAll:false},
-        {name:"Mitre", url:"https://www.google.com/search?q=inurl:attack.mitre.org+{data}", openAll:false},
-        {name:"NIST NVD", url:"https://nvd.nist.gov/vuln/search#/nvd/home?keyword={data}&resultType=records", openAll:false},
-        {name:"CVE ORG", url:"https://www.cve.org/CVERecord?id={data}", openAll:false},
-        {name:"Exploit DB", url:"https://www.exploit-db.com/search?q={data}", openAll:false},
-        {name:"Windows EventID", url:"https://www.ultimatewindowssecurity.com/securitylog/encyclopedia/event.aspx?eventid={data}", openAll:false},
-        {name:"Microsoft ErrorCode", url:"https://login.microsoftonline.com/error", encode:false, openAll:false},
-        {name:"WikiLeaks", url:"https://search.wikileaks.org/?query={data}", encode:false, openAll:false},
-        {name:"CyberChef", url:"https://gchq.github.io/CyberChef/", encode:false, openAll:false},
-        {name:"MXToolBox - EmailHeaders", url:"https://mxtoolbox.com/EmailHeaders.aspx", encode:false, openAll:false},
+        {name:"Google", url:"https://www.google.com/search?q={data}"},
+        {name:"Translate", url:"https://translate.google.com/?sl=auto&tl=en&text={data}&op=translate"},
+        {name:"LOLBAS", url:"https://lolbas-project.github.io/#{data}", encode:false},
+        {name:"GTFOBins", url:"https://gtfobins.github.io/#{data}", encode:false},
+        {name:"Mitre", url:"https://www.google.com/search?q=inurl:attack.mitre.org+{data}"},
+        {name:"NIST NVD", url:"https://nvd.nist.gov/vuln/search#/nvd/home?keyword={data}&resultType=records"},
+        {name:"CVE ORG", url:"https://www.cve.org/CVERecord?id={data}"},
+        {name:"Exploit DB", url:"https://www.exploit-db.com/search?q={data}"},
+        {name:"Windows EventID", url:"https://www.ultimatewindowssecurity.com/securitylog/encyclopedia/event.aspx?eventid={data}"},
+        {name:"Microsoft ErrorCode", url:"https://login.microsoftonline.com/error", encode:false},
+        {name:"WikiLeaks", url:"https://search.wikileaks.org/?query={data}", encode:false},
+        {name:"CyberChef", url:"https://gchq.github.io/CyberChef/", encode:false},
+        {name:"MXToolBox - EmailHeaders", url:"https://mxtoolbox.com/EmailHeaders.aspx", encode:false},
     ]
 };
 
@@ -145,16 +145,62 @@ async function sha256(input){
 }
 
 /* ================= NORMALIZATION ================= */
-async function prepareData(input,type,src){
-    let data=input;
-    if(type==="url"&&src.needsHash)data=await sha256(input);
-    if(src.usesDomain){
-        if(type==="email")data=emailDomain(input);
-        else if(type==="url")data=urlDomain(input);
+async function prepareData(input, type, src) {
+    let data = input;
+
+    // Calculate hash if URL and the source requires it
+    if (type === "url" && src.needsHash) {
+        data = await sha256(input);
     }
-    if(src.encode!==false)data=encodeURIComponent(data);
+
+    // If the source uses domain, extract it
+    if (src.usesDomain) {
+        if (type === "email") {
+            data = emailDomain(input);
+        } else if (type === "url" || type === "domain") {
+            data = urlDomain(input);
+        }
+    }
+
+    // Remove www. if noWWW is true
+    if (src.noWWW) {
+        data = data.replace(/^www\./i, "");
+    }
+
+    // Code URI component unless encode is explicitly false
+    if (src.encode !== false) {
+        data = encodeURIComponent(data);
+    }
+
     return data;
 }
+
+
+
+/* ================= OPEN ALL PREFERENCES ================= */
+const OPEN_PREF_KEY = "soc_openall_preferences";
+
+function loadOpenPrefs() {
+    return JSON.parse(localStorage.getItem(OPEN_PREF_KEY) || "{}");
+}
+
+function saveOpenPrefs(prefs) {
+    localStorage.setItem(OPEN_PREF_KEY, JSON.stringify(prefs));
+}
+
+function isUnlocked(type, name) {
+    const prefs = loadOpenPrefs();
+    return prefs[`${type}|${name}`] === true;
+}
+
+function toggleUnlocked(type, name) {
+    const prefs = loadOpenPrefs();
+    const key = `${type}|${name}`;
+    prefs[key] = !prefs[key];
+    saveOpenPrefs(prefs);
+    return prefs[key];
+}
+
 
 /* ================= RENDER ================= */
 async function renderLinks(raw){
@@ -167,7 +213,7 @@ async function renderLinks(raw){
 
     if(["ipv4","ipv6","url","domain"].includes(type)){
         normalValue.innerHTML=`<strong>Normal:</strong> <span id="normalText" style="cursor:pointer;">${normalized}</span>`;
-        defangedValue.innerHTML = `<strong>Defanged:</strong> <span id="defangText">${defanged}</span>`;
+        defangedValue.innerHTML = `<strong>Defanged:</strong> <span id="defangText" style="cursor:pointer;">${defanged}</span>`;
 
         const normalSpan = document.getElementById("normalText");
         normalSpan.onclick = () => {
@@ -188,42 +234,72 @@ async function renderLinks(raw){
         normalizedInfo.style.display="block";
     } else normalizedInfo.style.display="none";
 
-    for(const src of sources[type]){
-        const p = await prepareData(normalized,type,src);
-        const linkURL = src.url.replace("{data}",p);
+    for (const src of sources[type]) {
+        const p = await prepareData(normalized, type, src);
+        const linkURL = src.url.replace("{data}", p);
 
         const a = document.createElement("a");
         a.href = linkURL;
         a.target = "_blank";
         a.className = "link-card";
 
-        // Obtener favicon automático
         let domain = "";
-        try {
-            domain = new URL(linkURL).hostname;
-        } catch {}
+        try { domain = new URL(linkURL).hostname; } catch {}
+
+        const unlocked = isUnlocked(type, src.name);
+        const lockIcon = unlocked ? "🔓" : "🔒";
+
+        const lockBtn = `
+            <span class="lock-btn" data-type="${type}" data-name="${src.name}">
+                ${lockIcon}
+            </span>
+        `;
+
         const iconHTML = `<img src="https://www.google.com/s2/favicons?domain=${domain}" alt="${src.name}">`;
 
-        a.innerHTML = `<div class="title">${iconHTML}${src.name}</div><span class="url">${linkURL}</span>`;
+        a.innerHTML = `
+            <div class="title">
+                ${iconHTML}
+                ${src.name}
+                ${lockBtn}
+            </div>
+            <span class="url">${linkURL}</span>
+        `;
+
+        a.querySelector(".lock-btn").onclick = (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            const state = toggleUnlocked(type, src.name);
+            e.target.textContent = state ? "🔓" : "🔒";
+        };
+
         results.appendChild(a);
     }
+
 }
 
 /* ================= EVENTS ================= */
 lookupBtn.onclick=()=>renderLinks(inputData.value.trim());
 inputData.onkeypress=e=>{if(e.key==="Enter")renderLinks(inputData.value.trim());};
 
-openAll.onclick=async()=>{
-    const raw=inputData.value.trim();
-    if(!raw)return;
-    const n=normalizeDefang(raw);
-    const t=detectType(n);
-    for(const src of sources[t]){
-        if(src.openAll===false)continue;
-        const p=await prepareData(n,t,src);
-        window.open(src.url.replace("{data}",p),"_blank");
+openAll.onclick = async () => {
+    const raw = inputData.value.trim();
+    if (!raw) return;
+
+    const n = normalizeDefang(raw);
+    const t = detectType(n);
+    const prefs = loadOpenPrefs();
+
+    for (const src of sources[t]) {
+        if (src.openAll === false) continue;
+        if (!prefs[`${t}|${src.name}`]) continue;
+
+        const p = await prepareData(n, t, src);
+        window.open(src.url.replace("{data}", p), "_blank");
     }
 };
+
+/* ================= BOOT SEQUENCE ================= */
 
 const bootLines = [
     "[ OK ] Starting server..",
@@ -262,23 +338,38 @@ window.onload = bootSequence;
 /* ================= THEME TOGGLE ================= */
 const themeBtn = document.getElementById("themeToggle");
 
-// Función para aplicar tema
+// Function to apply a theme
 function applyTheme(theme) {
     document.body.classList.remove("hacker", "modern");
     document.body.classList.add(theme);
     localStorage.setItem("theme", theme);
 }
 
-// Al cargar la página, aplicamos el tema guardado o por defecto
+// Apply saved theme on load
 window.addEventListener("load", () => {
     const savedTheme = localStorage.getItem("theme") || "hacker";
     applyTheme(savedTheme);
 });
 
-// Al hacer clic en el botón, alternamos tema
+// Change theme on button click
 themeBtn.addEventListener("click", () => {
     const current = document.body.classList.contains("hacker") ? "hacker" : "modern";
     const next = current === "hacker" ? "modern" : "hacker";
     applyTheme(next);
 });
 
+/* ================= UTC CLOCK ================= */
+const utcClock = document.getElementById("utcClock");
+
+function updateUTCClock() {
+    const now = new Date();
+    utcClock.textContent = now.toISOString().replace("T", " ").replace("Z", " UTC");
+}
+
+setInterval(updateUTCClock, 1000);
+updateUTCClock();
+
+/* ================= FOOTER CURRENT YEAR ================= */
+document.getElementById("currentYear").textContent = new Date().getFullYear();
+
+/* ================= END ================= */

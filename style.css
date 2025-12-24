@@ -7,7 +7,10 @@ body {
     text-align: center;
     margin: 0;
     transition: all 0.3s ease;
+    overflow-x: hidden; /* disable horizontal scroll */
+    overflow-y: auto;   /* allow vertical scroll */
 }
+
 
 /* ================= INPUTS & BUTTONS ================= */
 input, button {
@@ -78,7 +81,23 @@ button:hover { background-color: #222; }
 /* ================= NORMALIZED INFO ================= */
 #normalizedInfo {
     margin-top: 15px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;   /* center horizontally */
+    justify-content: center;
+    gap: 5px;              /* separation between Normal and Defanged */
 }
+
+#normalizedInfo span {
+    cursor: pointer;
+}
+
+#normalizedInfo strong, 
+#normalizedInfo span {
+    display: inline-block;
+    text-align: center;
+}
+
 
 /* ================= TOGGLE THEME BUTTON ================= */
 #themeToggle {
@@ -100,7 +119,7 @@ button:hover { background-color: #222; }
 
 /* ================= BOOT SCREEN ================= */
 #bootScreen {
-    height: 100vh;
+    min-height: 100vh;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -112,24 +131,6 @@ button:hover { background-color: #222; }
     white-space: pre-wrap;
 }
 
-/* ================= RESPONSIVE ================= */
-@media (max-width: 600px) {
-    #results {
-        flex-direction: column;
-        align-items: center;
-    }
-    .link-card {
-        min-width: 90%;
-        max-width: 95%;
-    }
-    input, button {
-        width: 90%;
-        font-size: 16px;
-    }
-    pre {
-        font-size: 10px;
-    }
-}
 
 /* ================= MODERN THEME ================= */
 body.modern {
@@ -157,6 +158,12 @@ body.modern .link-card:hover {
 body.modern .link-card span.url {
     color: #555;
 }
+
+.link-card {
+    position: relative;
+}
+
+
 body.modern #themeToggle {
     background-color: #fff;
     color: #333;
@@ -164,4 +171,125 @@ body.modern #themeToggle {
 }
 body.modern #themeToggle:hover {
     background-color: #ddd;
+}
+
+#utcClock {
+    position: fixed;
+    top: 10px;
+    left: 20px; /* same padding as body */
+    font-family: "Courier New", monospace;
+    font-size: 12px;
+    color: #00ff00;
+    z-index: 1000;
+}
+
+body.modern #utcClock {
+    color: #333;
+}
+
+
+.lock-btn {
+    position: absolute;
+    top: 6px;
+    right: 8px;
+    font-size: 14px;
+    cursor: pointer;
+    user-select: none;
+    opacity: 0.8;
+}
+
+.lock-btn:hover {
+    opacity: 1;
+    transform: scale(1.1);
+}
+
+/* ================= FOOTER ================= */
+#siteFooter {
+    width: 100%;
+    text-align: center;
+    padding: 8px 0;
+    background-color: rgba(0,0,0,0.8);
+    color: #00ff00;
+    font-family: "Courier New", monospace;
+    font-size: 0.9em;
+    margin-top: 20px; /* separates a bit from the content */
+}
+
+body.modern #siteFooter {
+    background-color: #f4f4f4;
+    color: #333;
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+}
+
+
+/* ================= ASCII ART PRE ================= */
+#app pre {
+    max-width: 100%;
+    overflow-x: auto;  /* allows horizontal scroll if necessary */
+    white-space: pre-wrap; /* allows text to wrap if it's too long */
+    word-break: break-word;
+    font-size: 14px;  /* base readable size on desktop */
+    line-height: 1.2;
+}
+
+@media (max-width: 600px) {
+    #app pre {
+        font-size: 7px;   /* reduce font size */
+        padding: 0 5px;    /* small internal margin */
+    }
+}
+
+/* ================= APP CONTAINER ================= */
+#app {
+    width: 100%;
+    display: block;
+}
+
+
+/* ================= RESPONSIVE ================= */
+@media (max-width: 600px) {
+    #results {
+        flex-direction: column;
+        align-items: center;
+    }
+    .link-card {
+        min-width: 90%;
+        max-width: 95%;
+    }
+    input, button {
+        width: 90%;
+        font-size: 16px;
+    }
+    pre {
+        font-size: 10px;
+    }
+}
+
+@media (max-width: 768px) {
+    
+    #utcClock {
+        position: relative;
+        top: auto;
+        left: auto;
+        margin-bottom: 5px;
+        font-size: 11px;
+        z-index: auto;
+        line-height: 1.2;
+    }
+
+    #themeToggle {
+        position: relative;
+        top: auto;
+        left: auto;
+        right: auto;
+        margin: 10px 0;
+        transform: none;
+        z-index: auto;
+    }
+}
+
+@media (max-width: 400px) {
+    pre {
+        font-size: 8px;
+    }
 }

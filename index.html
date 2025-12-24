@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<!-- Buy Me A Coffee Widget -->
 <script data-name="BMC-Widget" data-cfasync="false" src="https://cdnjs.buymeacoffee.com/1.0.0/widget.prod.min.js" data-id="jimmybianco" data-description="Support me on Buy me a coffee!" data-message="" data-color="#40DCA5" data-position="Right" data-x_margin="18" data-y_margin="18"></script>
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-NM8VMD29LZ"></script>
@@ -8,18 +9,25 @@
   window.dataLayer = window.dataLayer || [];
   function gtag(){dataLayer.push(arguments);}
   gtag('js', new Date());
-
   gtag('config', 'G-NM8VMD29LZ');
 </script>
+<!-- Google AdSense -->
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8782794139506972"
     crossorigin="anonymous"></script>
-<link rel="shortcut icon" href="favicon.ico">
+<!-- End -->
+
 <meta charset="UTF-8">
+<link rel="shortcut icon" href="favicon.ico">
+<meta name="description" content="SOC Toolkit: Free tool for analyzing domains, IPs, URLs, hashes, and emails.">
+<meta name="keywords" content="SOC, cybersecurity, domain, IP, URL, hash, email, threat intelligence">
+<meta name="author" content="Jimmy Bianco">
 <title>SOC Toolkit</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="stylesheet" href="./style.css">
 </head>
 <body>
+
+<div id="utcClock"></div>
 
 <button id="themeToggle" title="Toggle Theme">🌙</button>
 
@@ -28,7 +36,7 @@
 </div>
 
 <div id="app" style="display:none;">
-<br><br><br>
+<br><br>
 <pre>
 ███████╗ ██████╗  ██████╗     ████████╗ ██████╗  ██████╗ ██╗     ██╗  ██╗██╗████████╗
 ██╔════╝██╔═══██╗██╔════╝     ╚══██╔══╝██╔═══██╗██╔═══██╗██║     ██║ ██╔╝██║╚══██╔══╝
@@ -37,11 +45,11 @@
 ███████║╚██████╔╝╚██████╗        ██║   ╚██████╔╝╚██████╔╝███████╗██║  ██╗██║   ██║   
 ╚══════╝ ╚═════╝  ╚═════╝        ╚═╝    ╚═════╝  ╚═════╝ ╚══════╝╚═╝  ╚═╝╚═╝   ╚═╝   
 
-Coded by <a href="https://www.linkedin.com/in/jimmybianco" target="_blank" style="color:lab(31.55% 0.41 0.14); text-decoration:none;">Jimmy Bianco</a> - v20251222
+Coded by <a href="https://www.linkedin.com/in/jimmybianco" target="_blank" style="color:lab(31.55% 0.41 0.14); text-decoration:none;">Jimmy Bianco</a> - v20251224
 </pre>
 
 <div>
-    <input type="text" id="inputData" placeholder="Domain, URL, IP, hash, email or text">
+    <input type="text" id="inputData" placeholder="Domain, URL, IP, hash, email, text">
     <button id="lookupBtn">Lookup</button>
     <button id="openAll">Open All</button>
 </div>
@@ -50,17 +58,16 @@ Coded by <a href="https://www.linkedin.com/in/jimmybianco" target="_blank" style
 
 <div id="normalizedInfo">
 <div id="normalValue"></div>
-<div id="defangedValue" style="cursor:pointer;"></div>
+<div id="defangedValue"></div>
 </div>
 
 <div id="results"></div>
 
+<footer id="siteFooter">
+    &copy; <span id="currentYear"></span> SOC Toolkit. All rights reserved.
+</footer>
+
 <script src="./app.js"></script>
 </div>
-
 </body>
 </html>
-
-
-
-
