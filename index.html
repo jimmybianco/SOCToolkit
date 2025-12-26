@@ -64,10 +64,74 @@ Coded by <a href="https://www.linkedin.com/in/jimmybianco" target="_blank" style
 <div id="results"></div>
 
 <footer id="siteFooter">
-    &copy; <span id="currentYear"></span> SOC Toolkit. All rights reserved.
+  <div class="footer-links">
+    © <span id="currentYear"></span> SOC Toolkit. All rights reserved. |
+    <button class="footer-btn" data-target="aboutSection">About</button> |
+    <button class="footer-btn" data-target="privacySection">Privacy</button> |
+    <button class="footer-btn" data-target="termsSection">Terms</button> |
+    <button class="footer-btn" data-target="contactSection">Contact</button>
+  </div>
+
+  <div class="footer-sections">
+    <section id="aboutSection" class="footer-section">
+      <h3>About SOC Toolkit</h3>
+      <p>
+        SOC Toolkit is a free, browser-based utility designed to assist security
+        analysts, incident responders, and threat researchers in daily investigations.
+      </p>
+      <p>
+        The project is maintained by an independent security professional and follows
+        a community-driven approach. Feedback and improvements are welcome.
+      </p>
+    </section>
+
+    <section id="privacySection" class="footer-section">
+    <h3>Privacy Policy</h3>
+    <p>
+        We do not collect, store, or process any information entered by users into this website.
+        This includes, but is not limited to URLs, IP addresses, domains, hashes, text, or any other indicators submitted through the tool.
+        All user-provided data is processed locally in the user's browser and is never transmitted to, logged by, or stored on our servers.
+    </p>
+    <p>
+        We use Google Analytics to collect anonymous, aggregated usage statistics such as page views, browser type, and general geographic region.
+        No user-submitted data is shared with Google Analytics.
+    </p>
+    <p>
+        When users choose to open external services or third-party tools, their interaction is subject to the privacy policies and data handling practices of those respective services.
+    </p>
+    <p>
+        Google Privacy Policy:
+        <a href="https://policies.google.com/privacy" target="_blank" rel="noopener">
+        https://policies.google.com/privacy
+        </a>
+    </p>
+    </section>
+
+    <section id="termsSection" class="footer-section">
+      <h3>Terms of Service</h3>
+      <p>
+        SOC Toolkit is provided "as is" without warranties. The maintainer assumes no
+        liability for misuse or reliance on third-party services.
+      </p>
+      <p>
+        All external links redirect to third-party platforms under their own terms.
+      </p>
+    </section>
+
+    <section id="contactSection" class="footer-section">
+      <h3>Contact</h3>
+      <p>
+        For feedback, issues, or suggestions, contact:
+      </p>
+      <p>
+        <strong>Email:</strong> contact@soctoolkit.com
+      </p>
+    </section>
+  </div>
 </footer>
 
 <script src="./app.js"></script>
 </div>
 </body>
+
 </html>
