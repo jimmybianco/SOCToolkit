@@ -371,5 +371,20 @@ updateUTCClock();
 
 /* ================= FOOTER CURRENT YEAR ================= */
 document.getElementById("currentYear").textContent = new Date().getFullYear();
+/* ================= FOOTER TOGGLE ================= */
+document.querySelectorAll(".footer-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+        const targetId = btn.dataset.target;
+        const section = document.getElementById(targetId);
 
+        // Close others
+        document.querySelectorAll(".footer-section").forEach(sec => {
+            if (sec !== section) sec.style.display = "none";
+        });
+
+        // Toggle current
+        section.style.display =
+            section.style.display === "block" ? "none" : "block";
+    });
+});
 /* ================= END ================= */
