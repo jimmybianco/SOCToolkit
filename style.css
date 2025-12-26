@@ -221,6 +221,47 @@ body.modern #siteFooter {
     font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
 }
 
+.footer-btn {
+    background: none;
+    border: none;
+    color: inherit;
+    font-family: inherit;
+    cursor: pointer;
+    padding: 0 4px;
+    text-decoration: underline;
+}
+
+.footer-btn:hover {
+    opacity: 0.8;
+}
+
+.footer-sections {
+    max-width: 900px;
+    margin: 10px auto 0;
+    text-align: left;
+}
+
+.footer-section {
+    display: none;
+    padding: 10px 0;
+    border-top: 1px solid rgba(0,255,0,0.3);
+    font-size: 0.9em;
+}
+
+body.modern .footer-section {
+    border-top: 1px solid rgba(0,0,0,0.2);
+}
+
+.footer-section h3 {
+    margin: 5px 0;
+}
+
+/* Mobile-friendly spacing */
+@media (max-width: 600px) {
+    .footer-sections {
+        padding: 0 10px;
+    }
+}
 
 /* ================= ASCII ART PRE ================= */
 #app pre {
@@ -293,5 +334,6 @@ body.modern #siteFooter {
         font-size: 8px;
     }
 }
+
 
 
