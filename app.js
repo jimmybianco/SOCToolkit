@@ -80,7 +80,7 @@ const sources = {
         {name:"Have I Been Pwned", url:"https://haveibeenpwned.com/unifiedsearch/{data}", usesDomain:false, encode:false},
         {name:"HudsonRock Infostealer", url:"https://cavalier.hudsonrock.com/api/json/v2/osint-tools/search-by-email?email={data}", usesDomain:false, encode:false},
         {name:"Intelbase", url:"https://intelbase.is/", usesDomain:true, encode:false},
-        {name:"Blackist Checker", url:"https://blacklistchecker.com/check?input={data}", usesDomain:false, encode:false},
+        {name:"Blacklist Checker", url:"https://blacklistchecker.com/check?input={data}", usesDomain:false, encode:false},
     ],
     text: [
         {name:"Google", url:"https://www.google.com/search?q={data}"},
@@ -403,3 +403,4 @@ document.querySelectorAll(".footer-btn").forEach(btn => {
     });
 });
 /* ================= END ================= */
+
