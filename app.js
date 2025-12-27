@@ -175,8 +175,6 @@ async function prepareData(input, type, src) {
     return data;
 }
 
-
-
 /* ================= OPEN ALL PREFERENCES ================= */
 const OPEN_PREF_KEY = "soc_openall_preferences";
 
@@ -200,7 +198,6 @@ function toggleUnlocked(type, name) {
     saveOpenPrefs(prefs);
     return prefs[key];
 }
-
 
 /* ================= RENDER ================= */
 async function renderLinks(raw){
@@ -300,7 +297,6 @@ openAll.onclick = async () => {
 };
 
 /* ================= BOOT SEQUENCE ================= */
-
 const bootLines = [
     "[ OK ] Starting server..",
     "[ OK ] Initializing SOC Toolkit core",
@@ -342,6 +338,19 @@ const themeBtn = document.getElementById("themeToggle");
 function applyTheme(theme) {
     document.body.classList.remove("hacker", "modern");
     document.body.classList.add(theme);
+
+    // Trigger animation
+    themeBtn.classList.remove("animate");
+    void themeBtn.offsetWidth; // force reflow
+    themeBtn.classList.add("animate");
+
+    // Update icon
+    if (theme === "modern") {
+        themeBtn.textContent = "🌙";
+    } else {
+        themeBtn.textContent = "🔆";
+    }
+
     localStorage.setItem("theme", theme);
 }
 
@@ -353,7 +362,7 @@ window.addEventListener("load", () => {
 
 // Change theme on button click
 themeBtn.addEventListener("click", () => {
-    const current = document.body.classList.contains("hacker") ? "hacker" : "modern";
+    const current = document.body.classList.contains("modern") ? "modern" : "hacker";
     const next = current === "hacker" ? "modern" : "hacker";
     applyTheme(next);
 });
@@ -388,4 +397,3 @@ document.querySelectorAll(".footer-btn").forEach(btn => {
     });
 });
 /* ================= END ================= */
-
