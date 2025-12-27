@@ -97,6 +97,7 @@ const sources = {
         {name:"WikiLeaks", url:"https://search.wikileaks.org/?query={data}", encode:false},
         {name:"CyberChef", url:"https://gchq.github.io/CyberChef/", encode:false},
         {name:"MXToolBox - EmailHeaders", url:"https://mxtoolbox.com/EmailHeaders.aspx", encode:false},
+        {name:"No More Ransom", url:"https://www.nomoreransom.org/crypto-sheriff.php"},
     ]
 };
 
@@ -403,4 +404,5 @@ document.querySelectorAll(".footer-btn").forEach(btn => {
     });
 });
 /* ================= END ================= */
+
 
