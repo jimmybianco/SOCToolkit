@@ -49,7 +49,7 @@ const sources = {
         {name:"VirusTotal", url:"https://www.virustotal.com/gui/domain/{data}"},
         {name:"Talos", url:"https://talosintelligence.com/reputation_center/lookup?search={data}"},
         {name:"IBM X-Force", url:"https://exchange.xforce.ibmcloud.com/url/{data}"},
-        {name:"AlienVault OTX", url:"https://otx.alienvault.com/indicator/url/{data}"},
+        {name:"AlienVault OTX", url:"https://otx.alienvault.com/indicator/domain/{data}"},
         {name:"URLScan", url:"https://urlscan.io/search/#page.domain:{data}", encode:false, usesDomain:true, noWWW:true},
         {name:"Blacklist Checker", url:"https://blacklistchecker.com/check?input={data}", usesDomain:true, encode:false},
         {name:"URLVoid", url:"https://urlvoid.com/scan/{data}/", noWWW:true},
@@ -404,5 +404,6 @@ document.querySelectorAll(".footer-btn").forEach(btn => {
     });
 });
 /* ================= END ================= */
+
 
 
