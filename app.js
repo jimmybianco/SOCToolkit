@@ -308,12 +308,9 @@ const bootLines = [
     "[ OK ] Starting server..",
     "[ OK ] Initializing SOC Toolkit core",
     "[ OK ] Loading modules..",
-    "[ OK ] Initializing language engine",
-    "[ OK ] Initializing routing",
-    "[ OK ] Checking service availability",
     "[ OK ] Establishing secure environment",
-    "[ OK ] Coded by Jimmy Bianco",
     "[ OK ] SOC Toolkit ready",
+    "[ OK ] Coded by Jimmy Bianco",
     "[ OK ] Redirecting to soctoolkit.com"
 ];
 
@@ -404,6 +401,7 @@ document.querySelectorAll(".footer-btn").forEach(btn => {
     });
 });
 /* ================= END ================= */
+
 
 
 
