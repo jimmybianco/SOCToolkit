@@ -10,7 +10,8 @@ const sources = {
         {name:"Shodan", url:"https://www.shodan.io/search?query={data}"},
         {name:"Censys", url:"https://search.censys.io/hosts/{data}"},
         {name:"GreyNoise", url:"https://www.greynoise.io/viz/ip/{data}"},
-        {name:"IPLocation", url:"https://iplocation.io/ip/{data}"}
+        {name:"IPLocation", url:"https://iplocation.io/ip/{data}"},
+        {name:"ClickFix Hunter", url:"https://clickfix.carsonww.com/domains?query={data}"},
     ],
     ipv6: [
         {name:"VirusTotal", url:"https://www.virustotal.com/gui/ip-address/{data}"},
@@ -22,7 +23,8 @@ const sources = {
         {name:"Shodan", url:"https://www.shodan.io/search?query={data}"},
         {name:"Censys", url:"https://search.censys.io/hosts/{data}"},
         {name:"GreyNoise", url:"https://www.greynoise.io/viz/ip/{data}"},
-        {name:"IPLocation", url:"https://iplocation.io/ip/{data}"}
+        {name:"IPLocation", url:"https://iplocation.io/ip/{data}"},
+        {name:"ClickFix Hunter", url:"https://clickfix.carsonww.com/domains?query={data}"},
     ],
     url: [
         {name:"VirusTotal", url:"https://www.virustotal.com/gui/url/{data}", needsHash:true, encode:true},
@@ -44,6 +46,7 @@ const sources = {
         {name:"Browserling", url:"https://www.browserling.com/browse/win10/chrome138/{data}", encode:false},
         {name:"AnyRun", url:"https://app.any.run/safe/{data}", encode:false},
         {name:"Phishing Checker", url:"https://phishing.finsin.cl/list.php", encode:false},
+        {name:"ClickFix Hunter", url:"https://clickfix.carsonww.com/domains?query={data}", usesDomain:true},
     ],
     domain: [
         {name:"VirusTotal", url:"https://www.virustotal.com/gui/domain/{data}"},
@@ -65,6 +68,7 @@ const sources = {
         {name:"Browserling", url:"https://www.browserling.com/browse/win10/chrome138/{data}", encode:false},
         {name:"AnyRun", url:"https://app.any.run/safe/{data}", encode:false},
         {name:"Phishing Checker", url:"https://phishing.finsin.cl/list.php", encode:false},
+        {name:"ClickFix Hunter", url:"https://clickfix.carsonww.com/domains?query={data}"},
     ],
     hash: [
         {name:"VirusTotal", url:"https://www.virustotal.com/gui/file/{data}"},
@@ -94,6 +98,7 @@ const sources = {
         {name:"Windows EventID", url:"https://www.ultimatewindowssecurity.com/securitylog/encyclopedia/event.aspx?eventid={data}"},
         {name:"Microsoft ErrorCode", url:"https://login.microsoftonline.com/error", encode:false},
         {name:"HudsonRock Infostealer (Username)", url:"https://cavalier.hudsonrock.com/api/json/v2/osint-tools/search-by-username?username={data}", usesDomain:false},
+        {name:"ClickFix Hunter", url:"https://clickfix.carsonww.com/domains?query={data}"},
         {name:"WikiLeaks", url:"https://search.wikileaks.org/?query={data}", encode:false},
         {name:"CyberChef", url:"https://gchq.github.io/CyberChef/", encode:false},
         {name:"MXToolBox - EmailHeaders", url:"https://mxtoolbox.com/EmailHeaders.aspx", encode:false},
@@ -401,6 +406,7 @@ document.querySelectorAll(".footer-btn").forEach(btn => {
     });
 });
 /* ================= END ================= */
+
 
 
 
