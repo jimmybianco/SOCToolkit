@@ -193,6 +193,7 @@ async function prepareData(input, type, src) {
     // Base64 has priority over URI encoding
     if (src.base64 === true) {
         data = toBase64(data);
+        return data;
     }
     // Otherwise encodeURIComponent unless explicitly disabled
     else if (src.encode !== false) {
@@ -422,6 +423,7 @@ document.querySelectorAll(".footer-btn").forEach(btn => {
     });
 });
 /* ================= END ================= */
+
 
 
 
