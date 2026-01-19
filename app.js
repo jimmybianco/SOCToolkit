@@ -104,7 +104,7 @@ const sources = {
         {name:"HudsonRock Infostealer (Username)", url:"https://cavalier.hudsonrock.com/api/json/v2/osint-tools/search-by-username?username={data}", usesDomain:false},
         {name:"ClickFix Hunter", url:"https://clickfix.carsonww.com/domains?query={data}"},
         {name:"WikiLeaks", url:"https://search.wikileaks.org/?query={data}", encode:false},
-        {name:"CyberChef", url:"https://gchq.github.io/CyberChef/#input={data}", encode:false},
+        {name:"CyberChef", url:"https://gchq.github.io/CyberChef/#input={data}", encode:false, base64:true},
         {name:"MXToolBox - EmailHeaders", url:"https://mxtoolbox.com/EmailHeaders.aspx", encode:false},
         {name:"No More Ransom", url:"https://www.nomoreransom.org/crypto-sheriff.php"},
     ]
@@ -160,6 +160,10 @@ async function sha256(input){
     return [...new Uint8Array(buf)].map(b=>b.toString(16).padStart(2,"0")).join("");
 }
 
+function toBase64(str) {
+    return btoa(unescape(encodeURIComponent(str)));
+}
+
 /* ================= NORMALIZATION ================= */
 async function prepareData(input, type, src) {
     let data = input;
@@ -183,13 +187,18 @@ async function prepareData(input, type, src) {
         data = data.replace(/^www\./i, "");
     }
 
-    // Code URI component unless encode is explicitly false
-    if (src.encode !== false) {
+    // Base64 has priority over URI encoding
+    if (src.base64 === true) {
+        data = toBase64(data);
+    }
+    // Otherwise encodeURIComponent unless explicitly disabled
+    else if (src.encode !== false) {
         data = encodeURIComponent(data);
     }
 
     return data;
 }
+
 
 /* ================= OPEN ALL PREFERENCES ================= */
 const OPEN_PREF_KEY = "soc_openall_preferences";
@@ -410,6 +419,7 @@ document.querySelectorAll(".footer-btn").forEach(btn => {
     });
 });
 /* ================= END ================= */
+
 
 
 
