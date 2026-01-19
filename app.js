@@ -104,7 +104,7 @@ const sources = {
         {name:"HudsonRock Infostealer (Username)", url:"https://cavalier.hudsonrock.com/api/json/v2/osint-tools/search-by-username?username={data}", usesDomain:false},
         {name:"ClickFix Hunter", url:"https://clickfix.carsonww.com/domains?query={data}"},
         {name:"WikiLeaks", url:"https://search.wikileaks.org/?query={data}", encode:false},
-        {name:"CyberChef", url:"https://gchq.github.io/CyberChef/#input={data}", encode:false, base64:true},
+        {name:"CyberChef", url:"https://gchq.github.io/CyberChef/#recipe=Magic(3,false,false,'')&input={data}", encode:true, base64:true},
         {name:"MXToolBox - EmailHeaders", url:"https://mxtoolbox.com/EmailHeaders.aspx", encode:false},
         {name:"No More Ransom", url:"https://www.nomoreransom.org/crypto-sheriff.php"},
     ]
@@ -419,6 +419,7 @@ document.querySelectorAll(".footer-btn").forEach(btn => {
     });
 });
 /* ================= END ================= */
+
 
 
 
