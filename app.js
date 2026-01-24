@@ -49,6 +49,7 @@ const sources = {
         {name:"AnyRun", url:"https://app.any.run/safe/{data}", encode:false},
         {name:"Phishing Checker", url:"https://phishing.finsin.cl/list.php", encode:false},
         {name:"ClickFix Hunter", url:"https://clickfix.carsonww.com/domains?query={data}", usesDomain:true},
+        {name:"CyberChef", url:"https://gchq.github.io/CyberChef/#recipe=Magic(3,false,false,'')&input={data}", encode:false, base64:true},
     ],
     domain: [
         {name:"VirusTotal", url:"https://www.virustotal.com/gui/domain/{data}"},
@@ -81,6 +82,7 @@ const sources = {
         {name:"IBM X-Force", url:"https://exchange.xforce.ibmcloud.com/malware/{data}"},
         {name:"Talos", url:"https://talosintelligence.com/talos_file_reputation?s={data}"},
         {name:"AlienVault OTX", url:"https://otx.alienvault.com/indicator/file/{data}"},
+        {name:"CyberChef", url:"https://gchq.github.io/CyberChef/#recipe=Magic(3,false,false,'')&input={data}", encode:false, base64:true},
     ],
     email: [ 
         {name:"Have I Been Pwned", url:"https://haveibeenpwned.com/unifiedsearch/{data}", usesDomain:false, encode:false},
@@ -423,6 +425,7 @@ document.querySelectorAll(".footer-btn").forEach(btn => {
     });
 });
 /* ================= END ================= */
+
 
 
 
