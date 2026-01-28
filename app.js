@@ -11,6 +11,7 @@ const sources = {
         {name:"Censys", url:"https://search.censys.io/hosts/{data}"},
         {name:"GreyNoise", url:"https://www.greynoise.io/viz/ip/{data}"},
         {name:"IPLocation", url:"https://iplocation.io/ip/{data}"},
+        {name:"WhatIsMyIPAddress", url:"https://whatismyipaddress.com/ip/{data}"},
         {name:"SPUR (detect VPNs)", url:"https://spur.us/context/{data}"},
         {name:"ClickFix Hunter", url:"https://clickfix.carsonww.com/domains?query={data}"},
     ],
@@ -25,6 +26,7 @@ const sources = {
         {name:"Censys", url:"https://search.censys.io/hosts/{data}"},
         {name:"GreyNoise", url:"https://www.greynoise.io/viz/ip/{data}"},
         {name:"IPLocation", url:"https://iplocation.io/ip/{data}"},
+        {name:"WhatIsMyIPAddress", url:"https://whatismyipaddress.com/ip/{data}"},
         {name:"SPUR (detect VPNs)", url:"https://spur.us/context/{data}"},
         {name:"ClickFix Hunter", url:"https://clickfix.carsonww.com/domains?query={data}"},
     ],
@@ -425,6 +427,7 @@ document.querySelectorAll(".footer-btn").forEach(btn => {
     });
 });
 /* ================= END ================= */
+
 
 
 
