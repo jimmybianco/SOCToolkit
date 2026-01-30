@@ -109,6 +109,8 @@ const sources = {
         {name:"ClickFix Hunter", url:"https://clickfix.carsonww.com/domains?query={data}"},
         {name:"WikiLeaks", url:"https://search.wikileaks.org/?query={data}", encode:false},
         {name:"CyberChef", url:"https://gchq.github.io/CyberChef/#recipe=Magic(3,false,false,'')&input={data}", encode:false, base64:true},
+        {name:"ExplainShell", url:"https://explainshell.com/explain?cmd={data}", encode:false, base64:false},
+        {name:"Port Info", url:"https://speedguide.net/port.php?port={data}", encode:false, base64:false},
         {name:"MXToolBox - EmailHeaders", url:"https://mxtoolbox.com/EmailHeaders.aspx", encode:false},
         {name:"No More Ransom", url:"https://www.nomoreransom.org/crypto-sheriff.php"},
     ]
@@ -427,6 +429,7 @@ document.querySelectorAll(".footer-btn").forEach(btn => {
     });
 });
 /* ================= END ================= */
+
 
 
 
