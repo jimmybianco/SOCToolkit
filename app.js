@@ -105,6 +105,7 @@ const sources = {
         {name:"Mitre", url:"https://www.google.com/search?q=inurl:attack.mitre.org+{data}"},
         {name:"NIST NVD", url:"https://nvd.nist.gov/vuln/search#/nvd/home?keyword={data}&resultType=records"},
         {name:"CVE ORG", url:"https://www.cve.org/CVERecord?id={data}"},
+        {name:"CVE RADAR", url:"https://socradar.io/labs/app/cve-radar/{data}"},
         {name:"Exploit DB", url:"https://www.exploit-db.com/search?q={data}"},
         {name:"Windows EventID", url:"https://www.ultimatewindowssecurity.com/securitylog/encyclopedia/event.aspx?eventid={data}"},
         {name:"Microsoft ErrorCode", url:"https://login.microsoftonline.com/error", encode:false},
@@ -432,6 +433,7 @@ document.querySelectorAll(".footer-btn").forEach(btn => {
     });
 });
 /* ================= END ================= */
+
 
 
 
