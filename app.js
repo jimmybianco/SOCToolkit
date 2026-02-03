@@ -45,6 +45,7 @@ const sources = {
         {name:"SecurityTrails - DNS", url:"https://securitytrails.com/domain/{data}", usesDomain:true},
         {name:"Hudson Rock Infostealer", url:"https://www.hudsonrock.com/search/domain/{data}", usesDomain:true, noWWW:true},
         {name:"Hudson Rock (URL Discovery)", url:"https://cavalier.hudsonrock.com/api/json/v2/osint-tools/urls-by-domain?domain={data}", usesDomain:true, noWWW:true},
+        {name:"SOCRadar (DarkWebReport)", url:"https://socradar.io/labs/app/dark-web-report?domain={data}", usesDomain:true, noWWW:true},
         {name:"Wayback Machine", url:"https://web.archive.org/web/{data}"},
         {name:"Wayback Machine (Save)", url:"https://web.archive.org/save/{data}"},
         {name:"Browserling", url:"https://www.browserling.com/browse/win10/chrome138/{data}", encode:false},
@@ -68,6 +69,7 @@ const sources = {
         {name:"SecurityTrails - DNS", url:"https://securitytrails.com/domain/{data}"},
         {name:"HudsonRock Infostealer", url:"https://www.hudsonrock.com/search/domain/{data}", usesDomain:true, noWWW:true},
         {name:"HudsonRock (URL Discovery)", url:"https://cavalier.hudsonrock.com/api/json/v2/osint-tools/urls-by-domain?domain={data}", usesDomain:true, noWWW:true},
+        {name:"SOCRadar (DarkWebReport)", url:"https://socradar.io/labs/app/dark-web-report?domain={data}", usesDomain:true, noWWW:true},
         {name:"Wayback Machine", url:"https://web.archive.org/web/{data}"},
         {name:"Wayback Machine (Save)", url:"https://web.archive.org/save/{data}"},
         {name:"Browserling", url:"https://www.browserling.com/browse/win10/chrome138/{data}", encode:false},
@@ -89,6 +91,7 @@ const sources = {
     email: [ 
         {name:"Have I Been Pwned", url:"https://haveibeenpwned.com/unifiedsearch/{data}", usesDomain:false, encode:false},
         {name:"HudsonRock Infostealer", url:"https://cavalier.hudsonrock.com/api/json/v2/osint-tools/search-by-email?email={data}", usesDomain:false, encode:false},
+        {name:"SOCRadar (DarkWebReport)", url:"https://socradar.io/labs/app/dark-web-report?domain={data}", usesDomain:false},
         {name:"Intelbase", url:"https://intelbase.is/"},
         {name:"IntelX", url:"https://intelx.io/?s={data}&b=leaks.public.wikileaks,leaks.public.general,dumpster,documents.public.scihub", encode:false},
         {name:"Internxt DarkWeb Monitor", url:"https://internxt.com/dark-web-monitor", encode:false},
@@ -429,6 +432,7 @@ document.querySelectorAll(".footer-btn").forEach(btn => {
     });
 });
 /* ================= END ================= */
+
 
 
 
