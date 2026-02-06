@@ -17,6 +17,7 @@ const sources = {
         {name:"MyIP", url:"https://myip.ms/info/whois/{data}"},
         {name:"SPUR (detect VPNs)", url:"https://spur.us/context/{data}"},
         {name:"ClickFix Hunter", url:"https://clickfix.carsonww.com/domains?query={data}"},
+        {name:"Nitter (Tweets)", url:"https://nitter.net/search?f=tweets&q={data}&since=&until=&min_faves="},
     ],
     ipv6: [
         {name:"VirusTotal", url:"https://www.virustotal.com/gui/ip-address/{data}"},
@@ -35,6 +36,7 @@ const sources = {
         {name:"MyIP", url:"https://myip.ms/info/whois/{data}"},
         {name:"SPUR (detect VPNs)", url:"https://spur.us/context/{data}"},
         {name:"ClickFix Hunter", url:"https://clickfix.carsonww.com/domains?query={data}"},
+        {name:"Nitter (Tweets)", url:"https://nitter.net/search?f=tweets&q={data}&since=&until=&min_faves="},
     ],
     url: [
         {name:"VirusTotal", url:"https://www.virustotal.com/gui/url/{data}", needsHash:true, encode:true},
@@ -63,6 +65,7 @@ const sources = {
         {name:"Phishing Checker", url:"https://phishing.finsin.cl/list.php", encode:false},
         {name:"ClickFix Hunter", url:"https://clickfix.carsonww.com/domains?query={data}", usesDomain:true},
         {name:"CyberChef", url:"https://gchq.github.io/CyberChef/#recipe=Magic(3,false,false,'')&input={data}", encode:false, base64:true},
+        {name:"Nitter (Tweets)", url:"https://nitter.net/search?f=tweets&q={data}&since=&until=&min_faves="},
     ],
     domain: [
         {name:"VirusTotal", url:"https://www.virustotal.com/gui/domain/{data}"},
@@ -90,6 +93,7 @@ const sources = {
         {name:"AnyRun", url:"https://app.any.run/safe/{data}", encode:false},
         {name:"Phishing Checker", url:"https://phishing.finsin.cl/list.php", encode:false},
         {name:"ClickFix Hunter", url:"https://clickfix.carsonww.com/domains?query={data}"},
+        {name:"Nitter (Tweets)", url:"https://nitter.net/search?f=tweets&q={data}&since=&until=&min_faves="},
     ],
     hash: [
         {name:"VirusTotal", url:"https://www.virustotal.com/gui/file/{data}"},
@@ -101,6 +105,7 @@ const sources = {
         {name:"Talos", url:"https://talosintelligence.com/talos_file_reputation?s={data}"},
         {name:"AlienVault OTX", url:"https://otx.alienvault.com/indicator/file/{data}"},
         {name:"CyberChef", url:"https://gchq.github.io/CyberChef/#recipe=Magic(3,false,false,'')&input={data}", encode:false, base64:true},
+        {name:"Nitter (Tweets)", url:"https://nitter.net/search?f=tweets&q={data}&since=&until=&min_faves="},
     ],
     email: [ 
         {name:"Have I Been Pwned", url:"https://haveibeenpwned.com/unifiedsearch/{data}", usesDomain:false, encode:false},
@@ -110,6 +115,7 @@ const sources = {
         {name:"IntelX", url:"https://intelx.io/?s={data}&b=leaks.public.wikileaks,leaks.public.general,dumpster,documents.public.scihub", encode:false},
         {name:"Internxt DarkWeb Monitor", url:"https://internxt.com/dark-web-monitor", encode:false},
         {name:"Blacklist Checker", url:"https://blacklistchecker.com/check?input={data}", usesDomain:false, encode:false},
+        {name:"Nitter (Tweets)", url:"https://nitter.net/search?f=tweets&q={data}&since=&until=&min_faves="},
     ],
     text: [
         {name:"Google", url:"https://www.google.com/search?q={data}"},
@@ -127,6 +133,7 @@ const sources = {
         {name:"Windows EventID", url:"https://www.ultimatewindowssecurity.com/securitylog/encyclopedia/event.aspx?eventid={data}"},
         {name:"Microsoft ErrorCode", url:"https://login.microsoftonline.com/error?code={data}", encode:false},
         {name:"HudsonRock Infostealer (Username)", url:"https://cavalier.hudsonrock.com/api/json/v2/osint-tools/search-by-username?username={data}", usesDomain:false},
+        {name:"Nitter (Tweets)", url:"https://nitter.net/search?f=tweets&q={data}&since=&until=&min_faves="},
         {name:"ClickFix Hunter", url:"https://clickfix.carsonww.com/domains?query={data}"},
         {name:"WikiLeaks", url:"https://search.wikileaks.org/?query={data}", encode:false},
         {name:"CyberChef", url:"https://gchq.github.io/CyberChef/#recipe=Magic(3,false,false,'')&input={data}", encode:false, base64:true},
@@ -452,6 +459,7 @@ document.querySelectorAll(".footer-btn").forEach(btn => {
     });
 });
 /* ================= END ================= */
+
 
 
 
