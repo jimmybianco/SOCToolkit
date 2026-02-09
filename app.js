@@ -6,7 +6,7 @@ const sources = {
         {name:"Talos", url:"https://talosintelligence.com/reputation_center/lookup?search={data}"},
         {name:"IBM X-Force", url:"https://exchange.xforce.ibmcloud.com/ip/{data}"},
         {name:"AlienVault OTX", url:"https://otx.alienvault.com/indicator/ip/{data}"},
-        {name:"AnyRun (Search)", url:"https://intelligence.any.run/analysis/lookup#{%22query%22:%{data}%22,%22dateRange%22:180}"},
+        {name:"AnyRun (Search)", url:"https://intelligence.any.run/analysis/lookup#{%22query%22:%22{data}%22,%22dateRange%22:180}"},
         {name:"MXToolBox (Blacklist)", url:"https://mxtoolbox.com/SuperTool.aspx?action=blacklist%3a{data}&run=toolpage#", usesDomain:false, encode:false},
         {name:"Blacklist Checker", url:"https://blacklistchecker.com/check?input={data}", usesDomain:false, encode:false},
         {name:"CleanTalk (Blacklist)", url:"https://cleantalk.org/blacklists/{data}", usesDomain:false, encode:false},
@@ -26,7 +26,7 @@ const sources = {
         {name:"Talos", url:"https://talosintelligence.com/reputation_center/lookup?search={data}"},
         {name:"IBM X-Force", url:"https://exchange.xforce.ibmcloud.com/ip/{data}"},
         {name:"AlienVault OTX", url:"https://otx.alienvault.com/indicator/ip/{data}"},
-        {name:"AnyRun (Search)", url:"https://intelligence.any.run/analysis/lookup#{%22query%22:%{data}%22,%22dateRange%22:180}", usesDomain:false, encode:false},
+        {name:"AnyRun (Search)", url:"https://intelligence.any.run/analysis/lookup#{%22query%22:%22{data}%22,%22dateRange%22:180}"},
         {name:"MXToolBox (Blacklist)", url:"https://mxtoolbox.com/SuperTool.aspx?action=blacklist%3a{data}&run=toolpage#", usesDomain:false, encode:false},
         {name:"Blacklist Checker", url:"https://blacklistchecker.com/check?input={data}", usesDomain:false, encode:false},
         {name:"CleanTalk (Blacklist)", url:"https://cleantalk.org/blacklists/{data}", usesDomain:false, encode:false},
@@ -63,7 +63,7 @@ const sources = {
         {name:"Wayback Machine", url:"https://web.archive.org/web/{data}"},
         {name:"Wayback Machine (Save)", url:"https://web.archive.org/save/{data}"},
         {name:"Browserling", url:"https://www.browserling.com/browse/win10/chrome138/{data}", encode:false},
-        {name:"AnyRun (Search)", url:"https://intelligence.any.run/analysis/lookup#{%22query%22:%{data}%22,%22dateRange%22:180}", usesDomain:false, encode:false},
+        {name:"AnyRun (Search)", url:"https://intelligence.any.run/analysis/lookup#{%22query%22:%22{data}%22,%22dateRange%22:180}"},
         {name:"AnyRun", url:"https://app.any.run/safe/{data}", encode:false},
         {name:"Phishing Checker", url:"https://phishing.finsin.cl/list.php", encode:false},
         {name:"ClickFix Hunter", url:"https://clickfix.carsonww.com/domains?query={data}", usesDomain:true},
@@ -93,7 +93,7 @@ const sources = {
         {name:"Wayback Machine", url:"https://web.archive.org/web/{data}"},
         {name:"Wayback Machine (Save)", url:"https://web.archive.org/save/{data}"},
         {name:"Browserling", url:"https://www.browserling.com/browse/win10/chrome138/{data}", encode:false},
-        {name:"AnyRun (Search)", url:"https://intelligence.any.run/analysis/lookup#{%22query%22:%{data}%22,%22dateRange%22:180}", usesDomain:false, encode:false},
+        {name:"AnyRun (Search)", url:"https://intelligence.any.run/analysis/lookup#{%22query%22:%22{data}%22,%22dateRange%22:180}"},
         {name:"AnyRun", url:"https://app.any.run/safe/{data}", encode:false},
         {name:"Phishing Checker", url:"https://phishing.finsin.cl/list.php", encode:false},
         {name:"ClickFix Hunter", url:"https://clickfix.carsonww.com/domains?query={data}"},
@@ -108,7 +108,7 @@ const sources = {
         {name:"IBM X-Force", url:"https://exchange.xforce.ibmcloud.com/malware/{data}"},
         {name:"Talos", url:"https://talosintelligence.com/talos_file_reputation?s={data}"},
         {name:"AlienVault OTX", url:"https://otx.alienvault.com/indicator/file/{data}"},
-        {name:"AnyRun (Search)", url:"https://intelligence.any.run/analysis/lookup#{%22query%22:%{data}%22,%22dateRange%22:180}", usesDomain:false, encode:false},
+        {name:"AnyRun (Search)", url:"https://intelligence.any.run/analysis/lookup#{%22query%22:%22{data}%22,%22dateRange%22:180}"},
         {name:"CyberChef", url:"https://gchq.github.io/CyberChef/#recipe=Magic(3,false,false,'')&input={data}", encode:false, base64:true},
         {name:"Nitter (Tweets)", url:"https://nitter.net/search?f=tweets&q={data}&since=&until=&min_faves="},
     ],
@@ -464,6 +464,7 @@ document.querySelectorAll(".footer-btn").forEach(btn => {
     });
 });
 /* ================= END ================= */
+
 
 
 
