@@ -147,6 +147,7 @@ const sources = {
         {name:"MXToolBox - EmailHeaders", url:"https://mxtoolbox.com/EmailHeaders.aspx", encode:false},
         {name:"Threat Encyclopedia", url:"https://www.trendmicro.com/vinfo/us/threat-encyclopedia/search/{data}", encode:false, base64:false},
         {name:"Valhalla (SIGMA/YARA Rules)", url:"https://valhalla.nextron-systems.com/info/search?keyword={data}", encode:false, base64:false},
+        {name:"Ransomware.Live", url:"https://www.ransomware.live/search?q={data}&scope=all"},
         {name:"No More Ransom", url:"https://www.nomoreransom.org/crypto-sheriff.php"},
     ]
 };
@@ -464,6 +465,7 @@ document.querySelectorAll(".footer-btn").forEach(btn => {
     });
 });
 /* ================= END ================= */
+
 
 
 
