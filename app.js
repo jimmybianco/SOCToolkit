@@ -114,7 +114,7 @@ const sources = {
         {name:"CyberChef", url:"https://gchq.github.io/CyberChef/#recipe=Magic(3,false,false,'')&input={data}", encode:false, base64:true},
         {name:"Nitter (Tweets)", url:"https://nitter.net/search?f=tweets&q={data}&since=&until=&min_faves="},
     ],
-    email: [ 
+    email: [
         {name:"Have I Been Pwned", url:"https://haveibeenpwned.com/unifiedsearch/{data}", usesDomain:false, encode:false},
         {name:"HudsonRock Infostealer", url:"https://cavalier.hudsonrock.com/api/json/v2/osint-tools/search-by-email?email={data}", usesDomain:false, encode:false},
         {name:"SOCRadar (DarkWebReport)", url:"https://socradar.io/labs/app/dark-web-report?domain={data}", usesDomain:false},
@@ -155,43 +155,75 @@ const sources = {
 };
 
 /* ================= DEFANG ================= */
-function normalizeDefang(v){
+function normalizeDefang(v) {
     return v
-        .replace(/^hxxps?:\/\//i,m=>m.toLowerCase().replace("hxxp","http"))
-        .replace(/\[\.\]|\(\.\)|\{\.\}/g,".")
+        // hxxps:// / hxxp:// → https:// / http://
+        .replace(/^hxxps?:\/\//i, m => m.toLowerCase().replace("hxxp", "http"))
+        // http[s]:// → https://  (defanged scheme bracket)
+        .replace(/^http\[s\]:\/\//i, "https://")
+        // h**ps:// or h**p://
+        .replace(/^h\*\*ps?:\/\//i, m => m.replace("**", "tt"))
+        // [.] (.) {.} → .
+        .replace(/\[\.\]|\(\.\)|\{\.\}/g, ".")
+        // IPv6 defang: [::] → ::  and  [:] → :
+        .replace(/\[::\]/g, "::")
+        .replace(/\[:\]/g, ":")
         .trim();
 }
-function defangValue(v){
-    return v
-        .replace(/^https?:\/\//i,m=>m.toLowerCase().replace("http","hxxp"))
-        .replace(/\./g,"[.]");
-}
 
-function copyToClipboard(text){
-    navigator.clipboard.writeText(text);
+function defangValue(v, type) {
+    switch (type) {
+        case "ipv4":
+            return v.replace(/\./g, "[.]");
+        case "ipv6":
+            // Replace single : first, then restore [:][:] back to [::]
+            return v.replace(/:/g, "[:]").replace(/\[:\]\[:\]/g, "[::]");
+        case "url":
+            return v
+                .replace(/^https?:\/\//i, m => m.toLowerCase().replace("http", "hxxp"))
+                .replace(/\./g, "[.]");
+        case "domain":
+            return v.replace(/\./g, "[.]");
+        default:
+            return v;
+    }
 }
 
 /* ============== DETECTORS ============== */
-function isIPv4(i){ return /^(25[0-5]|2[0-4]\d|1\d{2}|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d{2}|[1-9]?\d)){3}$/.test(i); }
-function isIPv6(i){ return /^([0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}$/.test(i); }
-function isURL(i){ return /^https?:\/\/[^\s]+$/.test(i); }
-function isDomain(i){ return /^[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(i); }
-function isHash(i){ return /^[a-fA-F0-9]{32,128}$/.test(i); }
-function isEmail(i){ return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(i); }
+function isIPv4(i) {
+    return /^(25[0-5]|2[0-4]\d|1\d{2}|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d{2}|[1-9]?\d)){3}$/.test(i);
+}
 
-function detectType(input){
-    if(isIPv4(input)) return "ipv4";
-    if(isIPv6(input)) return "ipv6";
-    if(isURL(input)) return "url";
-    if(isEmail(input)) return "email";
-    if(isDomain(input)) return "domain";
-    if(isHash(input)) return "hash";
+// FIX: support all IPv6 forms — abbreviated (::), full 8-group, and defanged variants.
+// URL constructor normalizes IPv6 (e.g. compresses consecutive zeros), so we can't
+// compare hostname === input. We just check that it parses without throwing.
+function isIPv6(i) {
+    try {
+        new URL(`http://[${i}]`);
+        return true;
+    } catch {
+        return false;
+    }
+}
+
+function isURL(i) { return /^https?:\/\/[^\s]+$/.test(i); }
+function isDomain(i) { return /^[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(i); }
+function isHash(i) { return /^[a-fA-F0-9]{32,128}$/.test(i); }
+function isEmail(i) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(i); }
+
+function detectType(input) {
+    if (isIPv4(input))  return "ipv4";
+    if (isIPv6(input))  return "ipv6";
+    if (isURL(input))   return "url";
+    if (isEmail(input)) return "email";
+    if (isHash(input))  return "hash";   // FIX: hash before domain to avoid false positives
+    if (isDomain(input)) return "domain";
     return "text";
 }
 
 /* ================= UTILITIES ================= */
-function emailDomain(email){ return email.split("@")[1].toLowerCase(); }
-function urlDomain(url){
+function emailDomain(email) { return email.split("@")[1].toLowerCase(); }
+function urlDomain(url) {
     try {
         return new URL(url).hostname;
     } catch {
@@ -199,13 +231,17 @@ function urlDomain(url){
     }
 }
 
-async function sha256(input){
+async function sha256(input) {
     const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(input));
-    return [...new Uint8Array(buf)].map(b=>b.toString(16).padStart(2,"0")).join("");
+    return [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2, "0")).join("");
 }
 
+// FIX: replaced deprecated unescape() with a standards-compliant implementation
 function toBase64(str) {
-    return btoa(unescape(encodeURIComponent(str)))
+    return btoa(
+        encodeURIComponent(str).replace(/%([0-9A-F]{2})/g,
+            (_, p1) => String.fromCharCode(parseInt(p1, 16)))
+    )
         .replace(/\+/g, "-")
         .replace(/\//g, "_")
         .replace(/=+$/, "");
@@ -215,12 +251,10 @@ function toBase64(str) {
 async function prepareData(input, type, src) {
     let data = input;
 
-    // Calculate hash if URL and the source requires it
     if (type === "url" && src.needsHash) {
         data = await sha256(input);
     }
 
-    // If the source uses domain, extract it
     if (src.usesDomain) {
         if (type === "email") {
             data = emailDomain(input);
@@ -229,26 +263,21 @@ async function prepareData(input, type, src) {
         }
     }
 
-    // Remove www. if noWWW is true
     if (src.noWWW) {
         data = data.replace(/^www\./i, "");
     }
 
-    // Base64 has priority over URI encoding
     if (src.base64 === true) {
         data = toBase64(data);
         return data;
-    }
-    // Otherwise encodeURIComponent unless explicitly disabled
-    else if (src.encode !== false) {
+    } else if (src.encode !== false) {
         data = encodeURIComponent(data);
     }
 
     return data;
 }
 
-
-/* ================= OPEN ALL PREFERENCES ================= */
+/* ================= FAVORITES / UNLOCK PREFERENCES ================= */
 const OPEN_PREF_KEY = "soc_openall_preferences";
 
 function loadOpenPrefs() {
@@ -272,117 +301,211 @@ function toggleUnlocked(type, name) {
     return prefs[key];
 }
 
+/* ================= DOM REFERENCES ================= */
+// FIX: explicit declarations instead of implicit global references
+const lookupBtn      = document.getElementById("lookupBtn");
+const inputData      = document.getElementById("inputData");
+const openUnlocked   = document.getElementById("openAll");
+const results        = document.getElementById("results");
+const normalValue    = document.getElementById("normalValue");
+const defangedValue  = document.getElementById("defangedValue");
+const normalizedInfo = document.getElementById("normalizedInfo");
+
 /* ================= RENDER ================= */
-async function renderLinks(raw){
-    if(!raw)return;
-    const normalized=normalizeDefang(raw);
-    const defanged=defangValue(normalized);
-    const type=detectType(normalized);
+// Safe helper: sets label + clickable text without innerHTML injection risk
+function setCopiableValue(containerId, label, value) {
+    const container = document.getElementById(containerId);
+    container.textContent = "";
 
-    document.getElementById("results").innerHTML="";
+    const strong = document.createElement("strong");
+    strong.textContent = label;
 
-    if(["ipv4","ipv6","url","domain"].includes(type)){
-        normalValue.innerHTML=`<strong>Normal:</strong> <span id="normalText" style="cursor:pointer;">${normalized}</span>`;
-        defangedValue.innerHTML = `<strong>Defanged:</strong> <span id="defangText" style="cursor:pointer;">${defanged}</span>`;
+    const span = document.createElement("span");
+    span.textContent = value;
+    span.style.cursor = "pointer";
 
-        const normalSpan = document.getElementById("normalText");
-        normalSpan.onclick = () => {
-            navigator.clipboard.writeText(normalized);
-            const original = normalSpan.innerText;
-            normalSpan.innerText = "Copied!";
-            setTimeout(() => normalSpan.innerText = original, 1000);
-        };
+    span.onclick = () => {
+        navigator.clipboard.writeText(value);
+        const orig = span.textContent;
+        span.textContent = "Copied!";
+        setTimeout(() => span.textContent = orig, 1000);
+    };
 
-        const defangSpan = document.getElementById("defangText");
-        defangSpan.onclick = () => {
-            navigator.clipboard.writeText(defanged);
-            const original = defangSpan.innerText;
-            defangSpan.innerText = "Copied!";
-            setTimeout(() => defangSpan.innerText = original, 1000);
-        };
+    container.appendChild(strong);
+    container.appendChild(document.createTextNode(" "));
+    container.appendChild(span);
+}
 
-        normalizedInfo.style.display="block";
-    } else normalizedInfo.style.display="none";
+async function renderLinks(raw) {
+    if (!raw) return;
+    const normalized = normalizeDefang(raw);
+    const type       = detectType(normalized);
+    const defanged   = defangValue(normalized, type);
+
+    results.innerHTML = "";
+
+    if (["ipv4", "ipv6", "url", "domain"].includes(type)) {
+        const typeLabel = { ipv4: "IPv4", ipv6: "IPv6", url: "URL", domain: "Domain" }[type];
+        setCopiableValue("normalValue",   typeLabel + ":",   normalized);
+        setCopiableValue("defangedValue", "Defanged:", defanged);
+        normalizedInfo.style.display = "block";
+    } else {
+        normalizedInfo.style.display = "none";
+    }
 
     for (const src of sources[type]) {
         const p = await prepareData(normalized, type, src);
-        const linkURL = src.url.replace("{data}", p);
+
+        // Build the raw link by substituting {data}
+        const rawLink = src.url.replace("{data}", p);
+
+        // FIX: validate scheme without letting new URL() mangle fragment-heavy URLs.
+        // We only check the protocol prefix — we don't re-serialize through URL.href
+        // because that can alter encoded fragments (e.g. CyberChef, URLScan, AnyRun).
+        const lowerLink = rawLink.toLowerCase();
+        if (!lowerLink.startsWith("https://") && !lowerLink.startsWith("http://")) {
+            console.warn("Blocked non-http URL:", rawLink);
+            continue;
+        }
+        const linkURL = rawLink; // use as-is; it came from our own trusted sources object
 
         const a = document.createElement("a");
-        a.href = linkURL;
+        a.href   = linkURL;
         a.target = "_blank";
+        a.rel    = "noopener noreferrer";
         a.className = "link-card";
 
         let domain = "";
         try { domain = new URL(linkURL).hostname; } catch {}
 
-        const unlocked = isUnlocked(type, src.name);
-        const lockIcon = unlocked ? "🔓" : "🔒";
+        const unlocked  = isUnlocked(type, src.name);
+        const lockIcon  = unlocked ? "🔓" : "🔒";
 
-        const lockBtn = `
-            <span class="lock-btn" data-type="${type}" data-name="${src.name}">
-                ${lockIcon}
-            </span>
-        `;
+        const img = document.createElement("img");
+        img.src = `https://www.google.com/s2/favicons?domain=${domain}`;
+        img.alt = src.name;
 
-        const iconHTML = `<img src="https://www.google.com/s2/favicons?domain=${domain}" alt="${src.name}">`;
+        const titleDiv = document.createElement("div");
+        titleDiv.className = "title";
 
-        a.innerHTML = `
-            <div class="title">
-                ${iconHTML}
-                ${src.name}
-                ${lockBtn}
-            </div>
-            <span class="url">${linkURL}</span>
-        `;
+        const nameSpan = document.createElement("span");
+        nameSpan.textContent = src.name;
 
-        a.querySelector(".lock-btn").onclick = (e) => {
+        const lockBtn = document.createElement("span");
+        lockBtn.className   = "lock-btn";
+        lockBtn.textContent = lockIcon;
+        lockBtn.title       = unlocked ? "Remove from unlocked" : "Unlock to open with 'Open Unlocked'";
+        lockBtn.dataset.type = type;
+        lockBtn.dataset.name = src.name;
+
+        titleDiv.appendChild(img);
+        titleDiv.appendChild(nameSpan);
+        titleDiv.appendChild(lockBtn);
+
+        // FIX: use textContent instead of innerHTML for the URL span to prevent XSS
+        const urlSpan = document.createElement("span");
+        urlSpan.className   = "url";
+        urlSpan.textContent = linkURL;
+
+        a.appendChild(titleDiv);
+        a.appendChild(urlSpan);
+
+        lockBtn.onclick = (e) => {
             e.preventDefault();
             e.stopPropagation();
-            const state = toggleUnlocked(type, src.name);
+            const state     = toggleUnlocked(type, src.name);
             e.target.textContent = state ? "🔓" : "🔒";
+            e.target.title       = state ? "Remove from unlocked" : "Unlock to open with 'Open Unlocked'";
         };
 
         results.appendChild(a);
     }
-
 }
 
 /* ================= EVENTS ================= */
-lookupBtn.onclick=()=>renderLinks(inputData.value.trim());
-inputData.onkeypress=e=>{if(e.key==="Enter")renderLinks(inputData.value.trim());};
+lookupBtn.onclick    = () => renderLinks(inputData.value.trim());
+inputData.onkeypress = e => { if (e.key === "Enter") renderLinks(inputData.value.trim()); };
 
-openAll.onclick = async () => {
+// FIX: "Open Unlocked" — opens only sources the user has unlocked (🔓)
+// Shows a toast if none are unlocked for the current IOC type
+openUnlocked.onclick = async () => {
     const raw = inputData.value.trim();
     if (!raw) return;
 
-    const n = normalizeDefang(raw);
-    const t = detectType(n);
+    const n     = normalizeDefang(raw);
+    const t     = detectType(n);
     const prefs = loadOpenPrefs();
 
+    let opened = 0;
     for (const src of sources[t]) {
-        if (src.openAll === false) continue;
-        if (!prefs[`${t}|${src.name}`]) continue;
+        // Only open sources explicitly set to true (unlocked).
+        // Using !== true avoids opening sources whose key was toggled back to false.
+        if (prefs[`${t}|${src.name}`] !== true) continue;
 
-        const p = await prepareData(n, t, src);
-        window.open(src.url.replace("{data}", p), "_blank");
+        const p       = await prepareData(n, t, src);
+        const rawLink = src.url.replace("{data}", p);
+
+        // Same validation strategy as renderLinks: prefix-check only,
+        // avoids new URL() mangling fragment-heavy URLs (CyberChef, AnyRun, URLScan...)
+        const lowerLink = rawLink.toLowerCase();
+        if (!lowerLink.startsWith("https://") && !lowerLink.startsWith("http://")) {
+            console.warn("Blocked non-http URL for", src.name);
+            continue;
+        }
+
+        window.open(rawLink, "_blank");
+        opened++;
+    }
+
+    if (opened === 0) {
+        showToast(`No unlocked tools for type "${t}". Click 🔒 on any card to unlock it.`);
     }
 };
+
+/* ================= TOAST NOTIFICATION ================= */
+function showToast(message, duration = 3500) {
+    let toast = document.getElementById("soc-toast");
+    if (!toast) {
+        toast = document.createElement("div");
+        toast.id = "soc-toast";
+        toast.style.cssText = `
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #222;
+            color: #fff;
+            border: 1px solid #black;
+            padding: 10px 20px;
+            border-radius: 6px;
+            font-family: "Courier New", monospace;
+            font-size: 13px;
+            z-index: 9999;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            max-width: 90%;
+            text-align: center;
+        `;
+        document.body.appendChild(toast);
+    }
+    toast.textContent = message;
+    toast.style.opacity = "1";
+    clearTimeout(toast._hideTimeout);
+    toast._hideTimeout = setTimeout(() => { toast.style.opacity = "0"; }, duration);
+}
 
 /* ================= BOOT SEQUENCE ================= */
 const bootLines = [
     "[ OK ] Starting server..",
-    "[ OK ] Initializing SOC Toolkit core",
     "[ OK ] Loading modules..",
     "[ OK ] Establishing secure environment",
-    "[ OK ] SOC Toolkit ready",
     "[ OK ] Coded by Jimmy Bianco",
     "[ OK ] Redirecting to soctoolkit.com"
 ];
 
 let line = 0;
-const bootEl = document.getElementById("bootOutput");
-const appEl = document.getElementById("app");
+const bootEl    = document.getElementById("bootOutput");
+const appEl     = document.getElementById("app");
 const queryInput = document.getElementById("inputData");
 
 function bootSequence() {
@@ -399,50 +522,40 @@ function bootSequence() {
     }
 }
 
-window.onload = bootSequence;
+// FIX: use addEventListener instead of window.onload to avoid overwriting other handlers
+window.addEventListener("load", bootSequence);
 
 /* ================= THEME TOGGLE ================= */
 const themeBtn = document.getElementById("themeToggle");
 
-// Function to apply a theme
 function applyTheme(theme) {
     document.body.classList.remove("hacker", "modern");
     document.body.classList.add(theme);
 
-    // Trigger animation
     themeBtn.classList.remove("animate");
-    void themeBtn.offsetWidth; // force reflow
+    void themeBtn.offsetWidth;
     themeBtn.classList.add("animate");
 
-    // Update icon
-    if (theme === "modern") {
-        themeBtn.textContent = "🌙";
-    } else {
-        themeBtn.textContent = "🔆";
-    }
-
+    themeBtn.textContent = theme === "modern" ? "🌙" : "🔆";
     localStorage.setItem("theme", theme);
 }
 
-// Apply saved theme on load
+// FIX: use addEventListener to coexist with bootSequence listener
 window.addEventListener("load", () => {
     const savedTheme = localStorage.getItem("theme") || "hacker";
     applyTheme(savedTheme);
 });
 
-// Change theme on button click
 themeBtn.addEventListener("click", () => {
     const current = document.body.classList.contains("modern") ? "modern" : "hacker";
-    const next = current === "hacker" ? "modern" : "hacker";
-    applyTheme(next);
+    applyTheme(current === "hacker" ? "modern" : "hacker");
 });
 
 /* ================= UTC CLOCK ================= */
 const utcClock = document.getElementById("utcClock");
 
 function updateUTCClock() {
-    const now = new Date();
-    utcClock.textContent = now.toISOString().replace("T", " ").replace("Z", " UTC");
+    utcClock.textContent = new Date().toISOString().replace("T", " ").replace("Z", " UTC");
 }
 
 setInterval(updateUTCClock, 1000);
@@ -450,44 +563,19 @@ updateUTCClock();
 
 /* ================= FOOTER CURRENT YEAR ================= */
 document.getElementById("currentYear").textContent = new Date().getFullYear();
+
 /* ================= FOOTER TOGGLE ================= */
 document.querySelectorAll(".footer-btn").forEach(btn => {
     btn.addEventListener("click", () => {
         const targetId = btn.dataset.target;
-        const section = document.getElementById(targetId);
+        const section  = document.getElementById(targetId);
 
-        // Close others
         document.querySelectorAll(".footer-section").forEach(sec => {
             if (sec !== section) sec.style.display = "none";
         });
 
-        // Toggle current
-        section.style.display =
-            section.style.display === "block" ? "none" : "block";
+        section.style.display = section.style.display === "block" ? "none" : "block";
     });
 });
+
 /* ================= END ================= */
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
