@@ -577,5 +577,119 @@ document.querySelectorAll(".footer-btn").forEach(btn => {
         section.style.display = section.style.display === "block" ? "none" : "block";
     });
 });
+/* ================= PARTICLES SYSTEM ================= */
 
+const canvas = document.getElementById("particlesCanvas");
+const ctx = canvas.getContext("2d");
+
+let particles = [];
+let mouse = { x: null, y: null };
+
+function resizeCanvas() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+}
+resizeCanvas();
+window.addEventListener("resize", resizeCanvas);
+
+window.addEventListener("mousemove", e => {
+    mouse.x = e.clientX;
+    mouse.y = e.clientY;
+});
+
+class Particle {
+    constructor() {
+        this.x = Math.random() * canvas.width;
+        this.y = Math.random() * canvas.height;
+        this.size = Math.random() * 2 + 1;
+        this.speedX = (Math.random() - 0.5) * 0.7;
+        this.speedY = (Math.random() - 0.5) * 0.7;
+    }
+
+    update() {
+        this.x += this.speedX;
+        this.y += this.speedY;
+
+        // rebote suave
+        if (this.x < 0 || this.x > canvas.width) this.speedX *= -1;
+        if (this.y < 0 || this.y > canvas.height) this.speedY *= -1;
+
+        // reacción al mouse
+        const dx = mouse.x - this.x;
+        const dy = mouse.y - this.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+
+        if (distance < 120) {
+            this.x -= dx * 0.02;
+            this.y -= dy * 0.02;
+        }
+    }
+
+    draw() {
+        const theme = document.body.classList.contains("modern") ? "modern" : "hacker";
+
+        if (theme === "hacker") {
+            ctx.fillStyle = "rgba(0,255,0,0.7)";
+        } else {
+            ctx.fillStyle = "rgba(60,60,80,0.4)";
+        }
+
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+        ctx.fill();
+    }
+}
+
+function initParticles() {
+    particles = [];
+    const count = window.innerWidth < 768 ? 60 : 120;
+
+    for (let i = 0; i < count; i++) {
+        particles.push(new Particle());
+    }
+}
+
+function connectParticles() {
+    for (let a = 0; a < particles.length; a++) {
+        for (let b = a; b < particles.length; b++) {
+            const dx = particles[a].x - particles[b].x;
+            const dy = particles[a].y - particles[b].y;
+            const distance = dx * dx + dy * dy;
+
+            if (distance < 10000) {
+                const theme = document.body.classList.contains("modern") ? "modern" : "hacker";
+
+                if (theme === "hacker") {
+                    ctx.strokeStyle = "rgba(0,255,0,0.1)";
+                } else {
+                    ctx.strokeStyle = "rgba(100,100,120,0.08)";
+                }
+
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.moveTo(particles[a].x, particles[a].y);
+                ctx.lineTo(particles[b].x, particles[b].y);
+                ctx.stroke();
+            }
+        }
+    }
+}
+
+function animateParticles() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    particles.forEach(p => {
+        p.update();
+        p.draw();
+    });
+
+    connectParticles();
+
+    requestAnimationFrame(animateParticles);
+}
+
+window.addEventListener("load", () => {
+    initParticles();
+    animateParticles();
+});
 /* ================= END ================= */
