@@ -464,34 +464,59 @@ openUnlocked.onclick = async () => {
 
 /* ================= TOAST NOTIFICATION ================= */
 function showToast(message, duration = 3500) {
-    let toast = document.getElementById("soc-toast");
-    if (!toast) {
-        toast = document.createElement("div");
-        toast.id = "soc-toast";
-        toast.style.cssText = `
+
+    // Create container (stack de toasts)
+    let container = document.getElementById("soc-toast-container");
+    if (!container) {
+        container = document.createElement("div");
+        container.id = "soc-toast-container";
+        container.style.cssText = `
             position: fixed;
-            bottom: 30px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: #222;
-            color: #fff;
-            border: 1px solid #black;
-            padding: 10px 20px;
-            border-radius: 6px;
-            font-family: "Courier New", monospace;
-            font-size: 13px;
+            top: 20px;
+            right: 100px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
             z-index: 9999;
-            opacity: 0;
-            transition: opacity 0.3s ease;
-            max-width: 90%;
-            text-align: center;
         `;
-        document.body.appendChild(toast);
+        document.body.appendChild(container);
     }
+
+    // Create individual toast
+    const toast = document.createElement("div");
+    toast.style.cssText = `
+        background: #222;
+        color: #fff;
+        border: 1px solid #000;
+        padding: 12px 20px;
+        border-radius: 8px;
+        font-family: "Courier New", monospace;
+        font-size: 13px;
+        max-width: 320px;
+        opacity: 0;
+        transform: translateX(20px);
+        transition: all 0.3s ease;
+        box-shadow: 0 6px 18px rgba(0,0,0,0.4);
+        cursor: default;
+    `;
+
     toast.textContent = message;
-    toast.style.opacity = "1";
-    clearTimeout(toast._hideTimeout);
-    toast._hideTimeout = setTimeout(() => { toast.style.opacity = "0"; }, duration);
+    container.appendChild(toast);
+
+    // Reflow
+    requestAnimationFrame(() => {
+        toast.style.opacity = "1";
+        toast.style.transform = "translateX(0)";
+    });
+
+    // Auto remove
+    setTimeout(() => {
+        toast.style.opacity = "0";
+        toast.style.transform = "translateX(20px)";
+        setTimeout(() => {
+            toast.remove();
+        }, 300);
+    }, duration);
 }
 
 /* ================= BOOT SEQUENCE ================= */
