@@ -458,7 +458,7 @@ openUnlocked.onclick = async () => {
     }
 
     if (opened === 0) {
-        showToast(`No unlocked tools for type "${t}". Click 🔒 on any card to unlock it.`);
+        showToast(`No unlocked tools. Click 🔒 on any card to unlock it.`);
     }
 };
 
@@ -472,8 +472,8 @@ function showToast(message, duration = 3500) {
         container.id = "soc-toast-container";
         container.style.cssText = `
             position: fixed;
-            top: 20px;
-            right: 100px;
+            top: 25px;
+            right: 60px;
             display: flex;
             flex-direction: column;
             gap: 12px;
