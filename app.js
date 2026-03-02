@@ -19,6 +19,7 @@ const sources = {
         {name:"MyIP", url:"https://myip.ms/info/whois/{data}"},
         {name:"SPUR (detect VPNs)", url:"https://spur.us/context/{data}"},
         {name:"ClickFix Hunter", url:"https://clickfix.carsonww.com/domains?query={data}"},
+        {name:"RIPEstat (Database)", url:"https://stat.ripe.net/resource/{data}#tab=database"},
         {name:"Nitter (Tweets)", url:"https://nitter.net/search?f=tweets&q={data}&since=&until=&min_faves="},
     ],
     ipv6: [
