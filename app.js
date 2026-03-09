@@ -9,6 +9,7 @@ const sources = {
         {name:"URLHaus", url:"https://urlhaus.abuse.ch/browse.php?search={data}"},
         {name:"ThreatFox", url:"https://threatfox.abuse.ch/browse.php?search=ioc%3A{data}", usesDomain:false, encode:false},
         {name:"AnyRun (Search)", url:"https://intelligence.any.run/analysis/lookup#{%22query%22:%22{data}%22,%22dateRange%22:180}"},
+        {name:"Guardpot", url:"https://threatsummary.guardpot.com/{data}"},
         {name:"MXToolBox (Blacklist)", url:"https://mxtoolbox.com/SuperTool.aspx?action=blacklist%3a{data}&run=toolpage#", usesDomain:false, encode:false},
         {name:"Blacklist Checker", url:"https://blacklistchecker.com/check?input={data}", usesDomain:false, encode:false},
         {name:"CleanTalk (Blacklist)", url:"https://cleantalk.org/blacklists/{data}", usesDomain:false, encode:false},
