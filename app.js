@@ -142,6 +142,7 @@ const sources = {
         {name:"LOTS Project", url:"https://lots-project.com/", encode:false},
         {name:"MalAPI", url:"https://malapi.io/", encode:false},
         {name:"FILESEC", url:"https://filesec.io/", encode:false},
+        {name:"xCyclopedia", url:"https://www.google.com/search?q=inurl:strontic.github.io/xcyclopedia+{data}"},
         {name:"Mitre", url:"https://www.google.com/search?q=inurl:attack.mitre.org+{data}"},
         {name:"NIST NVD", url:"https://nvd.nist.gov/vuln/search#/nvd/home?keyword={data}&resultType=records"},
         {name:"CVE ORG", url:"https://www.cve.org/CVERecord?id={data}"},
