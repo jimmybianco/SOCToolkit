@@ -288,6 +288,16 @@ async function prepareData(input, type, src) {
     return data;
 }
 
+/* ================= MULTI-IOC PARSER ================= */
+function parseMultipleIoCs(raw) {
+    return raw
+        .split(/[\n,]+/)          // split by newline or comma
+        .map(s => s.trim())
+        .filter(Boolean)
+        .map(normalizeDefang)
+        .filter(Boolean);
+}
+
 /* ================= FAVORITES / UNLOCK PREFERENCES ================= */
 const OPEN_PREF_KEY = "soc_openall_preferences";
 
@@ -310,6 +320,40 @@ function toggleUnlocked(type, name) {
     prefs[key] = !prefs[key];
     saveOpenPrefs(prefs);
     return prefs[key];
+}
+
+/* ================= CARD ORDER PERSISTENCE ================= */
+const ORDER_KEY = "soc_card_order";
+
+function loadOrder(type) {
+    try {
+        const saved = JSON.parse(localStorage.getItem(ORDER_KEY) || "{}");
+        return saved[type] || null; // null = use default source order
+    } catch { return null; }
+}
+
+function saveOrder(type, nameArray) {
+    try {
+        const saved = JSON.parse(localStorage.getItem(ORDER_KEY) || "{}");
+        saved[type] = nameArray;
+        localStorage.setItem(ORDER_KEY, JSON.stringify(saved));
+    } catch {}
+}
+
+// Returns sources[type] reordered to match saved order (new sources appended at end)
+function getOrderedSources(type) {
+    const list    = sources[type];
+    const saved   = loadOrder(type);
+    if (!saved) return list;
+
+    const byName  = Object.fromEntries(list.map(s => [s.name, s]));
+    const ordered = saved.map(n => byName[n]).filter(Boolean);
+
+    // Append any new sources not yet in saved order
+    const savedSet = new Set(saved);
+    list.forEach(s => { if (!savedSet.has(s.name)) ordered.push(s); });
+
+    return ordered;
 }
 
 /* ================= DOM REFERENCES ================= */
@@ -349,48 +393,145 @@ function setCopiableValue(containerId, label, value) {
 
 async function renderLinks(raw) {
     if (!raw) return;
-    const normalized = normalizeDefang(raw);
-    const type       = detectType(normalized);
-    const defanged   = defangValue(normalized, type);
+
+    const iocs = parseMultipleIoCs(raw);
+    if (!iocs.length) return;
+
+    const type = detectType(iocs[0]);
 
     results.innerHTML = "";
 
-    if (["ipv4", "ipv6", "url", "domain"].includes(type)) {
-        const typeLabel = { ipv4: "IPv4", ipv6: "IPv6", url: "URL", domain: "Domain" }[type];
-        setCopiableValue("normalValue",   typeLabel + ":",   normalized);
-        setCopiableValue("defangedValue", "Defanged:", defanged);
+    // ── Normalized / Defanged info for each IoC ──
+    const showDefang = ["ipv4", "ipv6", "url", "domain"].includes(type);
+    const showTable  = showDefang || ["email", "hash"].includes(type);
+    normalizedInfo.innerHTML = "";
+
+    if (showTable) {
+        const table = document.createElement("div");
+        table.className = "ioc-table";
+
+        // Header — type label; defang column only when applicable
+        const typeLabel = { ipv4: "IPv4", ipv6: "IPv6", url: "URL", domain: "Domain", email: "Email", hash: "Hash" }[type];
+        const header = document.createElement("div");
+        header.className = "ioc-row ioc-header" + (showDefang ? "" : " ioc-row-single");
+        const headerCols = showDefang ? ["#", typeLabel, "Defanged"] : ["#", typeLabel];
+        headerCols.forEach((h, colIdx) => {
+            const cell = document.createElement("span");
+            cell.textContent = h;
+
+            // Columns 1 (type) and 2 (defanged) copy all values on click
+            if (colIdx === 1) {
+                cell.className = "ioc-header-copy";
+                cell.title = `Copy all ${h} values`;
+                cell.onclick = () => {
+                    navigator.clipboard.writeText(iocs.join("\n"));
+                    const orig = cell.textContent;
+                    cell.textContent = "Copied!";
+                    setTimeout(() => cell.textContent = orig, 1000);
+                };
+            } else if (colIdx === 2 && showDefang) {
+                cell.className = "ioc-header-copy";
+                cell.title = "Copy all Defanged values";
+                cell.onclick = () => {
+                    navigator.clipboard.writeText(iocs.map(ioc => defangValue(ioc, type)).join("\n"));
+                    const orig = cell.textContent;
+                    cell.textContent = "Copied!";
+                    setTimeout(() => cell.textContent = orig, 1000);
+                };
+            }
+
+            header.appendChild(cell);
+        });
+        table.appendChild(header);
+
+        // One row per IoC
+        iocs.forEach((ioc, i) => {
+            const row = document.createElement("div");
+            row.className = "ioc-row" + (showDefang ? "" : " ioc-row-single");
+
+            const idxCell = document.createElement("span");
+            idxCell.textContent = i + 1;
+            idxCell.className = "ioc-index";
+
+            const normalCell = document.createElement("span");
+            normalCell.textContent = ioc;
+            normalCell.className = "ioc-copy";
+            normalCell.title = "Click to copy";
+            normalCell.onclick = () => {
+                navigator.clipboard.writeText(ioc);
+                const orig = normalCell.textContent;
+                normalCell.textContent = "Copied!";
+                setTimeout(() => normalCell.textContent = orig, 1000);
+            };
+
+            row.appendChild(idxCell);
+            row.appendChild(normalCell);
+
+            if (showDefang) {
+                const defanged = defangValue(ioc, type);
+                const defangCell = document.createElement("span");
+                defangCell.textContent = defanged;
+                defangCell.className = "ioc-copy";
+                defangCell.title = "Click to copy";
+                defangCell.onclick = () => {
+                    navigator.clipboard.writeText(defanged);
+                    const orig = defangCell.textContent;
+                    defangCell.textContent = "Copied!";
+                    setTimeout(() => defangCell.textContent = orig, 1000);
+                };
+                row.appendChild(defangCell);
+            }
+
+            table.appendChild(row);
+        });
+
+        normalizedInfo.appendChild(table);
         normalizedInfo.style.display = "block";
     } else {
         normalizedInfo.style.display = "none";
     }
 
-    for (const src of sources[type]) {
-        const p = await prepareData(normalized, type, src);
+    // ── Render one card per service ──
+    for (const src of getOrderedSources(type)) {
 
-        // Build the raw link by substituting {data}
-        const rawLink = src.url.replace("{data}", p);
-
-        // FIX: validate scheme without letting new URL() mangle fragment-heavy URLs.
-        // We only check the protocol prefix — we don't re-serialize through URL.href
-        // because that can alter encoded fragments (e.g. CyberChef, URLScan, AnyRun).
-        const lowerLink = rawLink.toLowerCase();
-        if (!lowerLink.startsWith("https://") && !lowerLink.startsWith("http://")) {
-            console.warn("Blocked non-http URL:", rawLink);
-            continue;
+        // Build all links for this source (one per IoC), validate each
+        const links = [];
+        for (const ioc of iocs) {
+            const p       = await prepareData(ioc, type, src);
+            const rawLink = src.url.replace("{data}", p);
+            const lower   = rawLink.toLowerCase();
+            if (!lower.startsWith("https://") && !lower.startsWith("http://")) {
+                console.warn("Blocked non-http URL:", rawLink);
+                continue;
+            }
+            links.push(rawLink);
         }
-        const linkURL = rawLink; // use as-is; it came from our own trusted sources object
+
+        if (!links.length) continue;
+
+        // Use first link for favicon + href (single IoC keeps original behaviour)
+        const firstLink = links[0];
+        let domain = "";
+        try { domain = new URL(firstLink).hostname; } catch {}
+
+        const unlocked = isUnlocked(type, src.name);
+        const lockIcon = unlocked ? "🔓" : "🔒";
 
         const a = document.createElement("a");
-        a.href   = linkURL;
-        a.target = "_blank";
-        a.rel    = "noopener noreferrer";
+        // Single IoC → normal link; multiple → prevent default and open all
+        if (iocs.length === 1) {
+            a.href   = firstLink;
+            a.target = "_blank";
+            a.rel    = "noopener noreferrer";
+        } else {
+            a.href = "#";
+            a.addEventListener("click", (e) => {
+                if (e.target.classList.contains("lock-btn")) return;
+                e.preventDefault();
+                links.forEach(url => window.open(url, "_blank"));
+            });
+        }
         a.className = "link-card";
-
-        let domain = "";
-        try { domain = new URL(linkURL).hostname; } catch {}
-
-        const unlocked  = isUnlocked(type, src.name);
-        const lockIcon  = unlocked ? "🔓" : "🔒";
 
         const img = document.createElement("img");
         img.src = `https://www.google.com/s2/favicons?domain=${domain}`;
@@ -402,10 +543,19 @@ async function renderLinks(raw) {
         const nameSpan = document.createElement("span");
         nameSpan.textContent = src.name;
 
+        // Badge showing how many tabs will open (only for multi-IoC)
+        if (iocs.length > 1) {
+            const badge = document.createElement("span");
+            badge.className = "ioc-count-badge";
+            badge.textContent = `×${iocs.length}`;
+            badge.title = `Opens ${iocs.length} tabs`;
+            nameSpan.appendChild(badge);
+        }
+
         const lockBtn = document.createElement("span");
-        lockBtn.className   = "lock-btn";
-        lockBtn.textContent = lockIcon;
-        lockBtn.title       = unlocked ? "Remove from unlocked" : "Unlock to open with 'Open Unlocked'";
+        lockBtn.className    = "lock-btn";
+        lockBtn.textContent  = lockIcon;
+        lockBtn.title        = unlocked ? "Remove from unlocked" : "Unlock to open with 'Open Unlocked'";
         lockBtn.dataset.type = type;
         lockBtn.dataset.name = src.name;
 
@@ -413,10 +563,9 @@ async function renderLinks(raw) {
         titleDiv.appendChild(nameSpan);
         titleDiv.appendChild(lockBtn);
 
-        // FIX: use textContent instead of innerHTML for the URL span to prevent XSS
         const urlSpan = document.createElement("span");
         urlSpan.className   = "url";
-        urlSpan.textContent = linkURL;
+        urlSpan.textContent = iocs.length > 1 ? `${iocs.length} IoCs → ${src.name}` : firstLink;
 
         a.appendChild(titleDiv);
         a.appendChild(urlSpan);
@@ -424,48 +573,76 @@ async function renderLinks(raw) {
         lockBtn.onclick = (e) => {
             e.preventDefault();
             e.stopPropagation();
-            const state     = toggleUnlocked(type, src.name);
+            const state          = toggleUnlocked(type, src.name);
             e.target.textContent = state ? "🔓" : "🔒";
             e.target.title       = state ? "Remove from unlocked" : "Unlock to open with 'Open Unlocked'";
         };
 
         results.appendChild(a);
     }
+
+    // ── Drag-to-reorder: init SortableJS on the results container ──
+    if (window.Sortable) {
+        if (results._sortable) results._sortable.destroy();
+
+        results._sortable = new Sortable(results, {
+            animation: 150,
+            ghostClass:  "sortable-ghost",
+            chosenClass: "sortable-chosen",
+            dragClass:   "sortable-drag",
+            delay:            200,
+            delayOnTouchOnly: true,
+            touchStartThreshold: 4,
+            onEnd() {
+                const names = [...results.querySelectorAll(".link-card")]
+                    .map(el => el.querySelector(".title span:not(.lock-btn)")?.textContent?.trim())
+                    .filter(Boolean);
+                saveOrder(type, names);
+            }
+        });
+    }
 }
 
 /* ================= EVENTS ================= */
-lookupBtn.onclick    = () => renderLinks(inputData.value.trim());
-inputData.onkeypress = e => { if (e.key === "Enter") renderLinks(inputData.value.trim()); };
+lookupBtn.onclick = () => renderLinks(inputData.value.trim());
+
+// Enter = lookup, Shift+Enter = newline
+inputData.addEventListener("keydown", e => {
+    if (e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault();
+        renderLinks(inputData.value.trim());
+    }
+});
+
+// Auto-grow textarea to fit content
 
 // FIX: "Open Unlocked" — opens only sources the user has unlocked (🔓)
-// Shows a toast if none are unlocked for the current IOC type
+// Supports multiple IoCs: opens all IoCs per unlocked source
 openUnlocked.onclick = async () => {
     const raw = inputData.value.trim();
     if (!raw) return;
 
-    const n     = normalizeDefang(raw);
-    const t     = detectType(n);
+    const iocs  = parseMultipleIoCs(raw);
+    if (!iocs.length) return;
+
+    const t     = detectType(iocs[0]);
     const prefs = loadOpenPrefs();
 
     let opened = 0;
-    for (const src of sources[t]) {
-        // Only open sources explicitly set to true (unlocked).
-        // Using !== true avoids opening sources whose key was toggled back to false.
+    for (const src of getOrderedSources(t)) {
         if (prefs[`${t}|${src.name}`] !== true) continue;
 
-        const p       = await prepareData(n, t, src);
-        const rawLink = src.url.replace("{data}", p);
-
-        // Same validation strategy as renderLinks: prefix-check only,
-        // avoids new URL() mangling fragment-heavy URLs (CyberChef, AnyRun, URLScan...)
-        const lowerLink = rawLink.toLowerCase();
-        if (!lowerLink.startsWith("https://") && !lowerLink.startsWith("http://")) {
-            console.warn("Blocked non-http URL for", src.name);
-            continue;
+        for (const ioc of iocs) {
+            const p       = await prepareData(ioc, t, src);
+            const rawLink = src.url.replace("{data}", p);
+            const lower   = rawLink.toLowerCase();
+            if (!lower.startsWith("https://") && !lower.startsWith("http://")) {
+                console.warn("Blocked non-http URL for", src.name);
+                continue;
+            }
+            window.open(rawLink, "_blank");
+            opened++;
         }
-
-        window.open(rawLink, "_blank");
-        opened++;
     }
 
     if (opened === 0) {
