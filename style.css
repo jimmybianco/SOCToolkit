@@ -126,7 +126,13 @@ button:hover {
     color: #000;
 }
 
-.lock-btn {
+/* ================= CARD WRAPPER ================= */
+.card-wrapper {
+    position: relative;
+    display: inline-flex;
+}
+
+.card-wrapper .lock-btn {
     position: absolute;
     top: 6px;
     right: 8px;
@@ -134,9 +140,10 @@ button:hover {
     cursor: pointer;
     user-select: none;
     opacity: 0.8;
+    z-index: 2;
 }
 
-.lock-btn:hover {
+.card-wrapper .lock-btn:hover {
     opacity: 1;
     transform: scale(1.1);
 }
@@ -624,16 +631,15 @@ body.modern .link-card.sortable-chosen {
 /* Drag handle — hidden on desktop, shown on touch */
 .drag-handle {
     display: none;
-    align-items: center;
-    justify-content: center;
-    font-size: 16px;
-    opacity: 0.5;
+    position: absolute;
+    bottom: 6px;
+    right: 8px;
+    font-size: 14px;
+    opacity: 0.4;
     cursor: grab;
-    padding: 0 2px;
     user-select: none;
     -webkit-user-select: none;
     touch-action: none;
-    margin-left: auto;
 }
 
 .drag-handle:active {

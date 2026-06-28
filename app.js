@@ -559,23 +559,28 @@ async function renderLinks(raw) {
         lockBtn.dataset.type = type;
         lockBtn.dataset.name = src.name;
 
-        // Mobile drag handle — only visible on touch devices
-        const dragHandle = document.createElement("span");
-        dragHandle.className   = "drag-handle";
-        dragHandle.textContent = "⠿";
-        dragHandle.title       = "Drag to reorder";
-
         titleDiv.appendChild(img);
         titleDiv.appendChild(nameSpan);
-        titleDiv.appendChild(lockBtn);
-        titleDiv.appendChild(dragHandle);
 
         const urlSpan = document.createElement("span");
         urlSpan.className   = "url";
         urlSpan.textContent = iocs.length > 1 ? `${iocs.length} IoCs → ${src.name}` : firstLink;
 
+        // Mobile drag handle — positioned bottom-right of card
+        const dragHandle = document.createElement("span");
+        dragHandle.className   = "drag-handle";
+        dragHandle.textContent = "⠿";
+        dragHandle.title       = "Drag to reorder";
+
         a.appendChild(titleDiv);
         a.appendChild(urlSpan);
+        a.appendChild(dragHandle);
+
+        // Wrapper so lockBtn sits outside <a> but stays visually on the card
+        const wrapper = document.createElement("div");
+        wrapper.className = "card-wrapper";
+        wrapper.appendChild(a);
+        wrapper.appendChild(lockBtn);
 
         lockBtn.onclick = (e) => {
             e.preventDefault();
@@ -585,7 +590,7 @@ async function renderLinks(raw) {
             e.target.title       = state ? "Remove from unlocked" : "Unlock to open with 'Open Unlocked'";
         };
 
-        results.appendChild(a);
+        results.appendChild(wrapper);
     }
 
     // ── Drag-to-reorder: init SortableJS on the results container ──
@@ -604,8 +609,8 @@ async function renderLinks(raw) {
             delayOnTouchOnly: false,
             touchStartThreshold: 4,
             onEnd() {
-                const names = [...results.querySelectorAll(".link-card")]
-                    .map(el => el.querySelector(".title span:not(.lock-btn):not(.drag-handle):not(.ioc-count-badge)")?.textContent?.trim())
+                const names = [...results.querySelectorAll(".card-wrapper .link-card")]
+                    .map(el => el.querySelector(".title span:not(.ioc-count-badge)")?.textContent?.trim())
                     .filter(Boolean);
                 saveOrder(type, names);
             }
