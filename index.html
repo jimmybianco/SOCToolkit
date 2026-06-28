@@ -30,7 +30,15 @@
 <canvas id="particlesCanvas"></canvas>
 <div id="utcClock"></div>
 
-<button id="themeToggle" title="Toggle Theme">🔆</button>
+<div id="settingsMenu">
+    <button id="settingsToggle" title="Settings">⚙️</button>
+    <div id="settingsDropdown" style="display:none;">
+        <button id="themeToggle">🔆 Toggle theme</button>
+        <button id="exportConfig">⬇️ Export config</button>
+        <label id="importConfigLabel">⬆️ Import config<input type="file" id="importConfigInput" accept=".json"></label>
+        <button id="resetConfig">🔄 Restore defaults</button>
+    </div>
+</div>
 
 <div id="bootScreen">
     <pre id="bootOutput"></pre>
@@ -46,7 +54,7 @@
 ███████║╚██████╔╝╚██████╗        ██║   ╚██████╔╝╚██████╔╝███████╗██║  ██╗██║   ██║   
 ╚══════╝ ╚═════╝  ╚═════╝        ╚═╝    ╚═════╝  ╚═════╝ ╚══════╝╚═╝  ╚═╝╚═╝   ╚═╝   
 
-Coded by <a href="https://www.linkedin.com/in/jimmybianco" target="_blank" style="color:lab(31.55% 0.41 0.14); text-decoration:none;">Jimmy Bianco</a> - v202606
+Coded by <a href="https://www.linkedin.com/in/jimmybianco" target="_blank" style="color:lab(31.55% 0.41 0.14); text-decoration:none;">Jimmy Bianco</a> - v202607
 </pre>
 
 <div>

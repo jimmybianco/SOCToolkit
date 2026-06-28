@@ -259,11 +259,28 @@ function toBase64(str) {
 }
 
 /* ================= NORMALIZATION ================= */
+
+// Normalize URL to match VirusTotal's canonical form:
+// VT always adds a trailing slash if there's no path, query or fragment.
+// e.g. http://soctoolkit.com → http://soctoolkit.com/
+function normalizeUrlForHashing(url) {
+    try {
+        const u = new URL(url);
+        // Only add slash if path is empty (just the origin)
+        if (u.pathname === "" || u.pathname === "/") {
+            u.pathname = "/";
+        }
+        return u.href;
+    } catch {
+        return url; // fallback: return as-is if URL is unparseable
+    }
+}
+
 async function prepareData(input, type, src) {
     let data = input;
 
     if (type === "url" && src.needsHash) {
-        data = await sha256(input);
+        data = await sha256(normalizeUrlForHashing(input));
     }
 
     if (src.usesDomain) {
@@ -340,9 +357,11 @@ function saveOrder(type, nameArray) {
     } catch {}
 }
 
-// Returns sources[type] reordered to match saved order (new sources appended at end)
+// Returns sources[type] + custom tools, reordered to match saved order
 function getOrderedSources(type) {
-    const list    = sources[type];
+    const native  = sources[type] || [];
+    const custom  = getCustomToolsForType(type).map(t => ({ ...t, custom: true }));
+    const list    = [...native, ...custom];
     const saved   = loadOrder(type);
     if (!saved) return list;
 
@@ -562,6 +581,23 @@ async function renderLinks(raw) {
         titleDiv.appendChild(img);
         titleDiv.appendChild(nameSpan);
 
+        // Delete button for custom tools — inside titleDiv, left of favicon
+        if (src.custom) {
+            const delBtn = document.createElement("span");
+            delBtn.className   = "delete-tool-btn";
+            delBtn.textContent = "❌";
+            delBtn.title       = "Remove custom tool";
+            delBtn.onclick     = (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                const allTypes = ["ipv4","ipv6","domain","url","hash","email","text"];
+                allTypes.forEach(t => deleteCustomTool(t, src.name));
+                renderLinks(inputData.value.trim());
+                showToast(`"${src.name}" removed.`);
+            };
+            titleDiv.insertBefore(delBtn, img);
+        }
+
         const urlSpan = document.createElement("span");
         urlSpan.className   = "url";
         urlSpan.textContent = iocs.length > 1 ? `${iocs.length} IoCs → ${src.name}` : firstLink;
@@ -579,6 +615,7 @@ async function renderLinks(raw) {
         // Wrapper so lockBtn sits outside <a> but stays visually on the card
         const wrapper = document.createElement("div");
         wrapper.className = "card-wrapper";
+        wrapper.dataset.name = src.name;
         wrapper.appendChild(a);
         wrapper.appendChild(lockBtn);
 
@@ -593,6 +630,17 @@ async function renderLinks(raw) {
         results.appendChild(wrapper);
     }
 
+    // ── "Add tool" card at the end ──
+    const addCard = document.createElement("div");
+    addCard.className = "card-wrapper add-tool-wrapper";
+    const addBtn = document.createElement("div");
+    addBtn.className = "link-card add-tool-card";
+    addBtn.title = "Add custom tool";
+    addBtn.innerHTML = `<span class="add-tool-plus">+</span><span class="add-tool-label">Add tool</span>`;
+    addBtn.onclick = () => openCustomToolModal(type);
+    addCard.appendChild(addBtn);
+    results.appendChild(addCard);
+
     // ── Drag-to-reorder: init SortableJS on the results container ──
     if (window.Sortable) {
         if (results._sortable) results._sortable.destroy();
@@ -604,19 +652,212 @@ async function renderLinks(raw) {
             ghostClass:  "sortable-ghost",
             chosenClass: "sortable-chosen",
             dragClass:   "sortable-drag",
+            filter:      ".add-tool-wrapper",
             handle:           isTouchDevice ? ".drag-handle" : undefined,
             delay:            isTouchDevice ? 0 : 0,
             delayOnTouchOnly: false,
             touchStartThreshold: 4,
             onEnd() {
-                const names = [...results.querySelectorAll(".card-wrapper .link-card")]
-                    .map(el => el.querySelector(".title span:not(.ioc-count-badge)")?.textContent?.trim())
+                const names = [...results.querySelectorAll(".card-wrapper[data-name]")]
+                    .map(el => el.dataset.name)
                     .filter(Boolean);
                 saveOrder(type, names);
             }
         });
     }
 }
+
+/* ================= CUSTOM TOOLS ================= */
+const CUSTOM_TOOLS_KEY = "soc_custom_tools";
+
+function loadCustomTools() {
+    try { return JSON.parse(localStorage.getItem(CUSTOM_TOOLS_KEY) || "{}"); } catch { return {}; }
+}
+
+function saveCustomTools(data) {
+    try { localStorage.setItem(CUSTOM_TOOLS_KEY, JSON.stringify(data)); } catch {}
+}
+
+function getCustomToolsForType(type) {
+    const all = loadCustomTools();
+    return all[type] || [];
+}
+
+function addCustomTool(type, tool) {
+    const all = loadCustomTools();
+    if (!all[type]) all[type] = [];
+    all[type].push(tool);
+    saveCustomTools(all);
+}
+
+function deleteCustomTool(type, name) {
+    const all = loadCustomTools();
+    if (!all[type]) return;
+    all[type] = all[type].filter(t => t.name !== name);
+    saveCustomTools(all);
+}
+
+function openCustomToolModal(type) {
+    // Capture current input value at the moment of opening
+    const currentRaw = inputData.value.trim();
+
+    // Remove existing modal if any
+    document.getElementById("customToolModal")?.remove();
+
+    const types = ["ipv4","ipv6","domain","url","hash","email","text"];
+
+    const overlay = document.createElement("div");
+    overlay.id        = "customToolModal";
+    overlay.className = "modal-overlay";
+    overlay.onclick   = e => { if (e.target === overlay) overlay.remove(); };
+
+    const box = document.createElement("div");
+    box.className = "modal-box";
+
+    box.innerHTML = `
+        <h3 class="modal-title">Add custom tool</h3>
+        <label class="modal-label">Name
+            <input id="ctName" class="modal-input" type="text" placeholder="My Tool" maxlength="40">
+        </label>
+        <label class="modal-label">URL <span class="modal-hint">use <code id="ctDataPlaceholder" title="Click to copy">{data}</code> as IoC placeholder</span>
+            <input id="ctUrl" class="modal-input" style="margin-top:8px" type="text" placeholder="https://example.com/search?q={data}">
+        </label>
+        <label class="modal-label">IoC type
+            <select id="ctType" class="modal-input">
+                <option value="all">All types</option>
+                ${types.map(t => `<option value="${t}" ${t === type ? "selected" : ""}>${t}</option>`).join("")}
+            </select>
+        </label>
+        <div id="ctError" class="modal-error" style="display:none"></div>
+        <div class="modal-actions">
+            <button id="ctCancel" class="modal-btn modal-btn-cancel">Cancel</button>
+            <button id="ctSave"   class="modal-btn modal-btn-save">Save</button>
+        </div>
+    `;
+
+    overlay.appendChild(box);
+    document.body.appendChild(overlay);
+
+    // {data} click to copy
+    const dataTag = document.getElementById("ctDataPlaceholder");
+    dataTag.style.cursor = "pointer";
+    dataTag.onclick = () => {
+        navigator.clipboard.writeText("{data}");
+        const orig = dataTag.textContent;
+        dataTag.textContent = "Copied!";
+        setTimeout(() => dataTag.textContent = orig, 1000);
+    };
+
+    document.getElementById("ctCancel").onclick = () => overlay.remove();
+    document.getElementById("ctSave").onclick   = () => {
+        const name    = document.getElementById("ctName").value.trim();
+        const url     = document.getElementById("ctUrl").value.trim();
+        const selType = document.getElementById("ctType").value;
+        const errEl   = document.getElementById("ctError");
+
+        // Validation
+        if (!name) { showModalError(errEl, "Name is required."); return; }
+        if (!url.includes("{data}")) { showModalError(errEl, "URL must contain {data}."); return; }
+        if (!url.startsWith("https://") && !url.startsWith("http://")) { showModalError(errEl, "URL must start with http:// or https://"); return; }
+
+        const existing = getCustomToolsForType(selType);
+        if (selType !== "all" && existing.some(t => t.name.toLowerCase() === name.toLowerCase())) {
+            showModalError(errEl, `A tool named "${name}" already exists for ${selType}.`); return;
+        }
+
+        const typesToSave = selType === "all" ? types : [selType];
+        typesToSave.forEach(t => {
+            const ex = getCustomToolsForType(t);
+            if (!ex.some(e => e.name.toLowerCase() === name.toLowerCase())) {
+                addCustomTool(t, { name, url });
+            }
+        });
+        overlay.remove();
+        renderLinks(currentRaw);
+        showToast(`"${name}" added!`);
+    };
+
+    // Focus name input
+    setTimeout(() => document.getElementById("ctName")?.focus(), 50);
+
+    // Close on Escape
+    const onKeyDown = (e) => { if (e.key === "Escape") { overlay.remove(); document.removeEventListener("keydown", onKeyDown); } };
+    document.addEventListener("keydown", onKeyDown);
+}
+
+function showModalError(el, msg) {
+    el.textContent  = msg;
+    el.style.display = "block";
+}
+
+/* ================= SETTINGS MENU ================= */
+const CONFIG_KEYS = [ORDER_KEY, OPEN_PREF_KEY, CUSTOM_TOOLS_KEY];
+
+document.getElementById("settingsToggle").onclick = (e) => {
+    e.stopPropagation();
+    const dd = document.getElementById("settingsDropdown");
+    dd.style.display = dd.style.display === "none" ? "flex" : "none";
+};
+
+// Close dropdown when clicking outside
+document.addEventListener("click", () => {
+    document.getElementById("settingsDropdown").style.display = "none";
+});
+
+document.getElementById("settingsDropdown").onclick = e => e.stopPropagation();
+
+// ── Export ──
+document.getElementById("exportConfig").onclick = () => {
+    const config = {};
+    CONFIG_KEYS.forEach(k => {
+        try { config[k] = JSON.parse(localStorage.getItem(k) || "null"); } catch {}
+    });
+    const blob = new Blob([JSON.stringify(config, null, 2)], { type: "application/json" });
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement("a");
+    a.href     = url;
+    a.download = "soctoolkit-config.json";
+    a.click();
+    URL.revokeObjectURL(url);
+    document.getElementById("settingsDropdown").style.display = "none";
+    showToast("Config exported!");
+};
+
+// ── Import ──
+document.getElementById("importConfigInput").onchange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+        try {
+            const config = JSON.parse(ev.target.result);
+            let applied  = 0;
+            CONFIG_KEYS.forEach(k => {
+                if (config[k] !== undefined && config[k] !== null) {
+                    localStorage.setItem(k, JSON.stringify(config[k]));
+                    applied++;
+                }
+            });
+            if (applied === 0) { showToast("Nothing to import."); return; }
+            document.getElementById("settingsDropdown").style.display = "none";
+            showToast("Config imported! Reloading...");
+            setTimeout(() => location.reload(), 1200);
+        } catch {
+            showToast("Invalid config file.");
+        }
+    };
+    reader.readAsText(file);
+    e.target.value = ""; // reset so same file can be re-imported
+};
+
+// ── Reset ──
+document.getElementById("resetConfig").onclick = () => {
+    if (!confirm("Restore defaults? This will remove your custom tools, order and unlock preferences.")) return;
+    CONFIG_KEYS.forEach(k => localStorage.removeItem(k));
+    document.getElementById("settingsDropdown").style.display = "none";
+    showToast("Restored! Reloading...");
+    setTimeout(() => location.reload(), 1200);
+};
 
 /* ================= EVENTS ================= */
 lookupBtn.onclick = () => renderLinks(inputData.value.trim());
@@ -629,18 +870,18 @@ inputData.addEventListener("keydown", e => {
     }
 });
 
-// Auto-size textarea width to fit placeholder text
-(function sizeInputToPlaceholder() {
+// Auto-size textarea width to fit placeholder text — runs after full paint
+window.addEventListener("load", () => {
     const placeholder = inputData.getAttribute("placeholder") || "";
-    const canvas      = document.createElement("canvas");
-    const ctx         = canvas.getContext("2d");
+    const canvas2     = document.createElement("canvas");
+    const ctx2        = canvas2.getContext("2d");
     const style       = window.getComputedStyle(inputData);
-    ctx.font          = `${style.fontSize} ${style.fontFamily}`;
-    const textWidth   = ctx.measureText(placeholder).width;
-    const padding     = parseFloat(style.paddingLeft) + parseFloat(style.paddingRight) + 20; // +20 safety margin
+    ctx2.font         = `${style.fontSize} ${style.fontFamily}`;
+    const textWidth   = ctx2.measureText(placeholder).width;
+    const padding     = parseFloat(style.paddingLeft) + parseFloat(style.paddingRight) + 20;
     const width       = Math.ceil(textWidth + padding);
     inputData.style.width = Math.min(width, window.innerWidth * 0.9) + "px";
-})();
+});
 
 // FIX: "Open Unlocked" — opens only sources the user has unlocked (🔓)
 // Supports multiple IoCs: opens all IoCs per unlocked source
@@ -770,12 +1011,7 @@ const themeBtn = document.getElementById("themeToggle");
 function applyTheme(theme) {
     document.body.classList.remove("hacker", "modern");
     document.body.classList.add(theme);
-
-    themeBtn.classList.remove("animate");
-    void themeBtn.offsetWidth;
-    themeBtn.classList.add("animate");
-
-    themeBtn.textContent = theme === "modern" ? "🌙" : "🔆";
+    themeBtn.textContent = (theme === "modern" ? "🌙" : "🔆") + " Toggle theme";
     localStorage.setItem("theme", theme);
 }
 
@@ -788,6 +1024,7 @@ window.addEventListener("load", () => {
 themeBtn.addEventListener("click", () => {
     const current = document.body.classList.contains("modern") ? "modern" : "hacker";
     applyTheme(current === "hacker" ? "modern" : "hacker");
+    // Keep dropdown open so user can see other options
 });
 
 /* ================= UTC CLOCK ================= */
@@ -847,10 +1084,12 @@ window.addEventListener("mousemove", e => {
 });
 
 // ── Click: spawn regular particles at click position ──
+const MAX_PARTICLES = 200;
 window.addEventListener("click", e => {
     const tag = e.target.tagName;
     if (tag === "INPUT" || tag === "TEXTAREA" || tag === "BUTTON" || tag === "A" || e.target.closest("a, button, .ioc-copy, .ioc-header-copy, .link-card, footer")) return;
     for (let i = 0; i < 8; i++) {
+        if (particles.length >= MAX_PARTICLES) particles.shift(); // remove oldest
         const p = new Particle();
         p.x = e.clientX;
         p.y = e.clientY;
@@ -876,6 +1115,7 @@ class Particle {
         if (this.y < 0 || this.y > canvas.height) this.speedY *= -1;
 
         // reacción al mouse
+        if (mouse.x === null || mouse.y === null) return;
         const dx = mouse.x - this.x;
         const dy = mouse.y - this.y;
         const distance = Math.sqrt(dx * dx + dy * dy);
@@ -928,6 +1168,8 @@ function initParticles() {
 }
 
 function connectParticles() {
+    const modern = isModern();
+    const lineColor = modern ? "rgba(100,100,120,0.08)" : "rgba(0,255,0,0.1)";
     for (let a = 0; a < particles.length; a++) {
         for (let b = a; b < particles.length; b++) {
             const dx = particles[a].x - particles[b].x;
@@ -935,7 +1177,7 @@ function connectParticles() {
             const distance = dx * dx + dy * dy;
 
             if (distance < 10000) {
-                ctx.strokeStyle = isModern() ? "rgba(100,100,120,0.08)" : "rgba(0,255,0,0.1)";
+                ctx.strokeStyle = lineColor;
                 ctx.lineWidth = 1;
                 ctx.beginPath();
                 ctx.moveTo(particles[a].x, particles[a].y);
