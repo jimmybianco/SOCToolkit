@@ -653,6 +653,7 @@ async function renderLinks(raw) {
             chosenClass: "sortable-chosen",
             dragClass:   "sortable-drag",
             filter:      ".add-tool-wrapper",
+            preventOnFilter: false,
             handle:           isTouchDevice ? ".drag-handle" : undefined,
             delay:            isTouchDevice ? 0 : 0,
             delayOnTouchOnly: false,
@@ -791,7 +792,7 @@ function showModalError(el, msg) {
 }
 
 /* ================= SETTINGS MENU ================= */
-const CONFIG_KEYS = [ORDER_KEY, OPEN_PREF_KEY, CUSTOM_TOOLS_KEY];
+const CONFIG_KEYS = [ORDER_KEY, OPEN_PREF_KEY, CUSTOM_TOOLS_KEY, "theme"];
 
 document.getElementById("settingsToggle").onclick = (e) => {
     e.stopPropagation();
