@@ -999,6 +999,7 @@ function bootSequence() {
             document.getElementById("bootScreen").style.display = "none";
             appEl.style.display = "block";
             queryInput.focus();
+            loadNews();
         }, 500);
     }
 }
@@ -1210,4 +1211,269 @@ window.addEventListener("load", () => {
     initParticles();
     animateParticles();
 });
+/* ================= NEWS FEED ================= */
+const NEWS_SOURCES = [
+    { name: "The Hacker News",  rss: "https://feeds.feedburner.com/TheHackersNews" },
+    { name: "BleepingComputer", rss: "https://www.bleepingcomputer.com/feed/" },
+    { name: "HudsonRock",       rss: "https://www.infostealers.com/feed/" },
+    { name: "Unit 42",          rss: "https://unit42.paloaltonetworks.com/feed/" },
+    { name: "Microsoft",        rss: "https://www.microsoft.com/en-us/security/blog/feed/" },
+    { name: "CrowdStrike",      rss: "https://www.crowdstrike.com/blog/feed/" },
+    { name: "Securelist",       rss: "https://securelist.com/feed/" },
+    { name: "The DFIR Report",  rss: "https://thedfirreport.com/feed/" },
+];
+
+const RSS2JSON   = "https://api.rss2json.com/v1/api.json?rss_url=";
+const NEWS_TTL   = 60 * 60 * 1000;
+let _newsCache   = {};
+let _newsResults = null;
+let _newsFilter  = "All";
+
+function getCachedFeed(name) {
+    const e = _newsCache[name];
+    return (e && Date.now() - e.ts < NEWS_TTL) ? e.items : null;
+}
+
+function setCachedFeed(name, items) {
+    _newsCache[name] = { ts: Date.now(), items };
+}
+
+async function fetchFeed(source) {
+    const cached = getCachedFeed(source.name);
+    if (cached) return { source, items: cached, ok: true };
+
+    const controller = new AbortController();
+    const tid = setTimeout(() => controller.abort(), 8000);
+    try {
+        const res  = await fetch(RSS2JSON + encodeURIComponent(source.rss), { signal: controller.signal });
+        const data = await res.json();
+        clearTimeout(tid);
+        if (data.status !== "ok") throw new Error("bad status");
+        const items = data.items || [];
+        setCachedFeed(source.name, items);
+        return { source, items, ok: true };
+    } catch {
+        clearTimeout(tid);
+        return { source, items: [], ok: false };
+    }
+}
+
+const TZ_MAP = {
+    CEST:"+0200", CET:"+0100", BST:"+0100", IST:"+0530",
+    EDT:"-0400",  EST:"-0500", CDT:"-0500", CST:"-0600",
+    MDT:"-0600",  MST:"-0700", PDT:"-0700", PST:"-0800",
+};
+
+function parseNewsDate(str) {
+    if (!str) return NaN;
+    // Replace non-standard timezone abbreviations (e.g. CEST → +0200)
+    let s = str.trim().replace(/\b([A-Z]{2,5})\b$/, m => TZ_MAP[m] || m);
+    // rss2json format: "2024-06-28 10:30:00" — normalize to ISO
+    if (/^\d{4}-\d{2}-\d{2} /.test(s)) {
+        s = s.replace(" ", "T");
+        if (!/[Z+\-]\d+$/.test(s)) s += "Z";
+    }
+    const t = new Date(s).getTime();
+    return isNaN(t) ? new Date(str).getTime() : t;
+}
+
+function timeAgo(dateStr) {
+    const diff = Date.now() - parseNewsDate(dateStr);
+    const h = Math.floor(diff / 3600000);
+    const d = Math.floor(diff / 86400000);
+    if (h < 1)  return "just now";
+    if (h < 24) return `${h}h ago`;
+    return `${d}d ago`;
+}
+
+const ITEMS_PER_SOURCE = 15;
+
+function getThumb(item) {
+    if (item.thumbnail && item.thumbnail.startsWith("http")) return item.thumbnail;
+    if (item.enclosure?.link && /^https?:\/\//.test(item.enclosure.link)) return item.enclosure.link;
+    return null;
+}
+
+function stripHtml(html) {
+    return (html || "").replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
+}
+
+function renderNewsUI() {
+    if (!_newsResults) return;
+
+    const filtersEl = document.getElementById("newsFilters");
+    const feedEl    = document.getElementById("newsFeed");
+
+    // ── Filter buttons ──
+    filtersEl.innerHTML = "";
+    ["All", ..._newsResults.map(r => r.source.name)].forEach(name => {
+        const failed      = name !== "All" && _newsResults.find(r => r.source.name === name && !r.ok);
+        const btn         = document.createElement("button");
+        btn.textContent   = name + (failed ? " ⚠" : "");
+        btn.className     = "news-filter-btn" + (_newsFilter === name ? " news-filter-active" : "");
+        btn.onclick       = () => { _newsFilter = name; renderNewsUI(); };
+        filtersEl.appendChild(btn);
+    });
+
+    // ── Collect + filter items ──
+    let items = [];
+    _newsResults.forEach(({ source, items: src, ok }) => {
+        if (!ok) return;
+        src.slice(0, ITEMS_PER_SOURCE).forEach(item => items.push({ ...item, _source: source.name }));
+    });
+
+    if (_newsFilter !== "All") items = items.filter(i => i._source === _newsFilter);
+    items.sort((a, b) => new Date(b.pubDate) - new Date(a.pubDate));
+
+    // ── Render items ──
+    feedEl.innerHTML = "";
+
+    if (!items.length) {
+        const p       = document.createElement("p");
+        p.className   = "news-status";
+        p.textContent = "No articles found.";
+        feedEl.appendChild(p);
+        return;
+    }
+
+    items.forEach(item => {
+        const a   = document.createElement("a");
+        a.className = "news-card";
+        a.href      = item.link;
+        a.target    = "_blank";
+        a.rel       = "noopener noreferrer";
+
+        const thumb = getThumb(item);
+        if (thumb) {
+            const img     = document.createElement("img");
+            img.className = "news-thumb";
+            img.src       = thumb;
+            img.alt       = "";
+            img.onerror   = () => img.remove();
+            a.appendChild(img);
+        }
+
+        const body       = document.createElement("div");
+        body.className   = "news-body";
+
+        const metaRow    = document.createElement("div");
+        metaRow.className = "news-meta-row";
+
+        const badge       = document.createElement("span");
+        badge.className   = "news-source-badge";
+        badge.textContent = item._source;
+
+        const age         = document.createElement("span");
+        age.className     = "news-item-age";
+        age.textContent   = timeAgo(item.pubDate);
+
+        metaRow.appendChild(badge);
+        metaRow.appendChild(age);
+
+        const title       = document.createElement("span");
+        title.className   = "news-item-title";
+        title.textContent = item.title;
+
+        body.appendChild(metaRow);
+        body.appendChild(title);
+
+        const rawDesc = stripHtml(item.description || "");
+        if (rawDesc) {
+            const desc       = document.createElement("span");
+            desc.className   = "news-item-desc";
+            desc.textContent = rawDesc;
+            body.appendChild(desc);
+        }
+
+        a.appendChild(body);
+        feedEl.appendChild(a);
+    });
+}
+
+function updateTicker(items) {
+    const ticker  = document.getElementById("newsTicker");
+    const content = document.getElementById("tickerContent");
+    if (!items.length) { ticker.style.display = "none"; return; }
+
+    content.innerHTML = "";
+
+    const makeSet = () => {
+        const frag = document.createDocumentFragment();
+        items.forEach(item => {
+            const a   = document.createElement("a");
+            a.className = "ticker-item";
+            a.href      = item.link;
+            a.target    = "_blank";
+            a.rel       = "noopener noreferrer";
+            a.addEventListener("click", e => e.stopPropagation());
+
+            const thumb = getThumb(item);
+            if (thumb) {
+                const img     = document.createElement("img");
+                img.className = "ticker-thumb";
+                img.src       = thumb;
+                img.alt       = "";
+                img.onerror   = () => img.remove();
+                a.appendChild(img);
+            }
+
+            const text       = document.createElement("span");
+            text.textContent = item.title;
+            a.appendChild(text);
+
+            frag.appendChild(a);
+
+            const sep       = document.createElement("span");
+            sep.className   = "ticker-sep";
+            sep.textContent = " ◆ ";
+            frag.appendChild(sep);
+        });
+        return frag;
+    };
+
+    content.appendChild(makeSet());
+    content.appendChild(makeSet()); // duplicate for seamless loop
+
+    const totalChars = items.reduce((s, i) => s + i.title.length, 0);
+    content.style.animationDuration = `${Math.max(30, totalChars * 0.13)}s`;
+    ticker.style.display = "flex";
+}
+
+async function loadNews(forceRefresh = false) {
+    if (forceRefresh) _newsCache = {};
+
+    document.getElementById("newsFeed").innerHTML    = `<p class="news-status">Loading news from ${NEWS_SOURCES.length} sources…</p>`;
+    document.getElementById("newsFilters").innerHTML = "";
+
+    const settled = await Promise.allSettled(NEWS_SOURCES.map(fetchFeed));
+    _newsResults  = NEWS_SOURCES.map((source, i) => {
+        const r = settled[i];
+        return r.status === "fulfilled" ? r.value : { source, items: [], ok: false };
+    });
+
+    // Collect all items across sources for the ticker
+    const allItems = [];
+    _newsResults.forEach(({ items, ok }) => {
+        if (!ok) return;
+        items.slice(0, ITEMS_PER_SOURCE).forEach(item => allItems.push(item));
+    });
+    allItems.sort((a, b) => parseNewsDate(b.pubDate) - parseNewsDate(a.pubDate));
+    updateTicker(allItems);
+
+    renderNewsUI();
+}
+
+function toggleNewsSection() {
+    const section = document.getElementById("newsSection");
+    const opening = section.style.display === "none";
+    section.style.display = opening ? "block" : "none";
+    if (opening) {
+        if (!_newsResults) loadNews();
+        requestAnimationFrame(() => section.scrollIntoView({ behavior: "smooth", block: "start" }));
+    }
+}
+
+document.getElementById("tickerLabel").addEventListener("click", toggleNewsSection);
+document.getElementById("newsRefresh").addEventListener("click", () => loadNews(true));
+
 /* ================= END ================= */
