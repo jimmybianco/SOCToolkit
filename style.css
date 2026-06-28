@@ -54,12 +54,11 @@ input, textarea, button {
     box-sizing: border-box;
     
 }
-input, textarea { width: 300px; max-width: 90%; cursor: text; }
+input, textarea { max-width: 90%; cursor: text; }
 textarea {
-    resize: none;
+    resize: both;
     overflow-y: auto;
     min-height: 32px;
-    max-height: 32px;
     line-height: 1.4;
     vertical-align: middle;
 }
@@ -607,7 +606,7 @@ body.modern .link-card.sortable-chosen {
 /* Mobile: visual feedback during long-press before drag activates */
 @media (hover: none) and (pointer: coarse) {
     .link-card {
-        cursor: default; /* no grab cursor on touch */
+        cursor: default;
         -webkit-tap-highlight-color: transparent;
     }
 
@@ -615,6 +614,35 @@ body.modern .link-card.sortable-chosen {
         transform: scale(1.04);
         transition: transform 0.15s ease, box-shadow 0.15s ease;
     }
+
+    /* Show drag handle only on touch */
+    .drag-handle {
+        display: inline-flex !important;
+    }
+}
+
+/* Drag handle — hidden on desktop, shown on touch */
+.drag-handle {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    opacity: 0.5;
+    cursor: grab;
+    padding: 0 2px;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: none;
+    margin-left: auto;
+}
+
+.drag-handle:active {
+    opacity: 1;
+    cursor: grabbing;
+}
+
+body.modern .drag-handle {
+    color: #475569;
 }
 
 /* ================= PARTICLES ================= */

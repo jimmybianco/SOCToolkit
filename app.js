@@ -559,9 +559,16 @@ async function renderLinks(raw) {
         lockBtn.dataset.type = type;
         lockBtn.dataset.name = src.name;
 
+        // Mobile drag handle — only visible on touch devices
+        const dragHandle = document.createElement("span");
+        dragHandle.className   = "drag-handle";
+        dragHandle.textContent = "⠿";
+        dragHandle.title       = "Drag to reorder";
+
         titleDiv.appendChild(img);
         titleDiv.appendChild(nameSpan);
         titleDiv.appendChild(lockBtn);
+        titleDiv.appendChild(dragHandle);
 
         const urlSpan = document.createElement("span");
         urlSpan.className   = "url";
@@ -585,17 +592,20 @@ async function renderLinks(raw) {
     if (window.Sortable) {
         if (results._sortable) results._sortable.destroy();
 
+        const isTouchDevice = window.matchMedia("(hover: none) and (pointer: coarse)").matches;
+
         results._sortable = new Sortable(results, {
             animation: 150,
             ghostClass:  "sortable-ghost",
             chosenClass: "sortable-chosen",
             dragClass:   "sortable-drag",
-            delay:            200,
-            delayOnTouchOnly: true,
+            handle:           isTouchDevice ? ".drag-handle" : undefined,
+            delay:            isTouchDevice ? 0 : 0,
+            delayOnTouchOnly: false,
             touchStartThreshold: 4,
             onEnd() {
                 const names = [...results.querySelectorAll(".link-card")]
-                    .map(el => el.querySelector(".title span:not(.lock-btn)")?.textContent?.trim())
+                    .map(el => el.querySelector(".title span:not(.lock-btn):not(.drag-handle):not(.ioc-count-badge)")?.textContent?.trim())
                     .filter(Boolean);
                 saveOrder(type, names);
             }
@@ -614,7 +624,18 @@ inputData.addEventListener("keydown", e => {
     }
 });
 
-// Auto-grow textarea to fit content
+// Auto-size textarea width to fit placeholder text
+(function sizeInputToPlaceholder() {
+    const placeholder = inputData.getAttribute("placeholder") || "";
+    const canvas      = document.createElement("canvas");
+    const ctx         = canvas.getContext("2d");
+    const style       = window.getComputedStyle(inputData);
+    ctx.font          = `${style.fontSize} ${style.fontFamily}`;
+    const textWidth   = ctx.measureText(placeholder).width;
+    const padding     = parseFloat(style.paddingLeft) + parseFloat(style.paddingRight) + 20; // +20 safety margin
+    const width       = Math.ceil(textWidth + padding);
+    inputData.style.width = Math.min(width, window.innerWidth * 0.9) + "px";
+})();
 
 // FIX: "Open Unlocked" — opens only sources the user has unlocked (🔓)
 // Supports multiple IoCs: opens all IoCs per unlocked source
@@ -798,6 +819,14 @@ const ctx = canvas.getContext("2d");
 let particles = [];
 let mouse = { x: null, y: null };
 
+// ── Cursor trail ──
+const TRAIL_LENGTH = 24;
+const TRAIL_TTL    = 120; // ms before a point expires
+const trail = [];
+
+// ── Theme helper ──
+function isModern() { return document.body.classList.contains("modern"); }
+
 function resizeCanvas() {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
@@ -808,6 +837,20 @@ window.addEventListener("resize", resizeCanvas);
 window.addEventListener("mousemove", e => {
     mouse.x = e.clientX;
     mouse.y = e.clientY;
+    trail.push({ x: e.clientX, y: e.clientY, t: Date.now() });
+    if (trail.length > TRAIL_LENGTH) trail.shift();
+});
+
+// ── Click: spawn regular particles at click position ──
+window.addEventListener("click", e => {
+    const tag = e.target.tagName;
+    if (tag === "INPUT" || tag === "TEXTAREA" || tag === "BUTTON" || tag === "A" || e.target.closest("a, button, .ioc-copy, .ioc-header-copy, .link-card, footer")) return;
+    for (let i = 0; i < 8; i++) {
+        const p = new Particle();
+        p.x = e.clientX;
+        p.y = e.clientY;
+        particles.push(p);
+    }
 });
 
 class Particle {
@@ -839,17 +882,34 @@ class Particle {
     }
 
     draw() {
-        const theme = document.body.classList.contains("modern") ? "modern" : "hacker";
-
-        if (theme === "hacker") {
-            ctx.fillStyle = "rgba(0,255,0,0.7)";
-        } else {
-            ctx.fillStyle = "rgba(60,60,80,0.4)";
-        }
-
+        ctx.fillStyle = isModern() ? "rgba(60,60,80,0.4)" : "rgba(0,255,0,0.7)";
         ctx.beginPath();
         ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
         ctx.fill();
+    }
+}
+
+// ── Draw cursor trail ──
+function drawTrail() {
+    // Remove points older than TTL
+    const now = Date.now();
+    while (trail.length && now - trail[0].t > TRAIL_TTL) trail.shift();
+
+    if (trail.length < 2) return;
+    const modern = isModern();
+
+    for (let i = 1; i < trail.length; i++) {
+        const alpha  = i / trail.length;
+        const width  = (i / trail.length) * 2.5;
+        ctx.beginPath();
+        ctx.moveTo(trail[i - 1].x, trail[i - 1].y);
+        ctx.lineTo(trail[i].x, trail[i].y);
+        ctx.strokeStyle = modern
+            ? `rgba(99,102,241,${alpha * 0.5})`
+            : `rgba(0,255,0,${alpha * 0.6})`;
+        ctx.lineWidth = width;
+        ctx.lineCap   = "round";
+        ctx.stroke();
     }
 }
 
@@ -870,14 +930,7 @@ function connectParticles() {
             const distance = dx * dx + dy * dy;
 
             if (distance < 10000) {
-                const theme = document.body.classList.contains("modern") ? "modern" : "hacker";
-
-                if (theme === "hacker") {
-                    ctx.strokeStyle = "rgba(0,255,0,0.1)";
-                } else {
-                    ctx.strokeStyle = "rgba(100,100,120,0.08)";
-                }
-
+                ctx.strokeStyle = isModern() ? "rgba(100,100,120,0.08)" : "rgba(0,255,0,0.1)";
                 ctx.lineWidth = 1;
                 ctx.beginPath();
                 ctx.moveTo(particles[a].x, particles[a].y);
@@ -891,6 +944,10 @@ function connectParticles() {
 function animateParticles() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+    // Draw trail first (below particles)
+    drawTrail();
+
+    // Update and draw all particles
     particles.forEach(p => {
         p.update();
         p.draw();
