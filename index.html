@@ -1,9 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<!-- Buy Me A Coffee Widget -->
-<script data-name="BMC-Widget" data-cfasync="false" src="https://cdnjs.buymeacoffee.com/1.0.0/widget.prod.min.js" data-id="jimmybianco" data-description="Support me on Buy me a coffee!" data-message="" data-color="#40DCA5" data-position="Right" data-x_margin="18" data-y_margin="18"></script>
-
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-NM8VMD29LZ"></script>
 <script>
@@ -71,6 +68,17 @@ Coded by <a href="https://www.linkedin.com/in/jimmybianco" target="_blank" style
 
 <div id="results"></div>
 
+<div id="newsTicker" style="display:none;">
+    <div class="ticker-side">
+        <span class="ticker-expand-badge" role="button" title="View all news">▲ ALL</span>
+        <button id="tickerModeToggle" class="ticker-mode-btn" title="Switch to compact view">≡</button>
+        <span id="tickerLabel" class="ticker-label" role="button" title="Click to view all news">📰 NEWS</span>
+    </div>
+    <div class="ticker-track">
+        <div id="tickerContent" class="ticker-content"></div>
+    </div>
+</div>
+
 <div id="newsSection" style="display:none;">
     <div class="news-header">
         <span class="news-section-title">Latest Security News</span>
@@ -80,79 +88,41 @@ Coded by <a href="https://www.linkedin.com/in/jimmybianco" target="_blank" style
     <div id="newsFeed"></div>
 </div>
 
-<footer id="siteFooter">
-  <div class="footer-links">
-    © <span id="currentYear"></span> SOC Toolkit. All rights reserved. |
-    <button class="footer-btn" data-target="aboutSection">About</button> |
-    <button class="footer-btn" data-target="privacySection">Privacy</button> |
-    <button class="footer-btn" data-target="termsSection">Terms</button> |
-    <button class="footer-btn" data-target="contactSection">Contact</button>
-  </div>
-
-  <div class="footer-sections">
-    <section id="aboutSection" class="footer-section">
-      <h3>About SOC Toolkit</h3>
-      <p>
-        SOC Toolkit is a free, browser-based utility designed to assist security
-        analysts, incident responders, and threat researchers in daily investigations.
-      </p>
-      <p>
-        The project is maintained by an independent security professional and follows
-        a community-driven approach. Feedback and improvements are welcome.
-      </p>
-    </section>
-
-    <section id="privacySection" class="footer-section">
-    <h3>Privacy Policy</h3>
-    <p>
-        We do not collect, store, or process any information entered by users into this website.
-        This includes, but is not limited to URLs, IP addresses, domains, hashes, text, or any other indicators submitted through the tool.
-        All user-provided data is processed locally in the user's browser and is never transmitted to, logged by, or stored on our servers.
-    </p>
-    <p>
-        We use Google Analytics to collect anonymous, aggregated usage statistics such as page views, browser type, and general geographic region.
-        No user-submitted data is shared with Google Analytics.
-    </p>
-    <p>
-        When users choose to open external services or third-party tools, their interaction is subject to the privacy policies and data handling practices of those respective services.
-    </p>
-    <p>
-        Google Privacy Policy:
-        <a href="https://policies.google.com/privacy" target="_blank" rel="noopener">
-        https://policies.google.com/privacy
-        </a>
-    </p>
-    </section>
-
-    <section id="termsSection" class="footer-section">
-      <h3>Terms of Service</h3>
-      <p>
-        SOC Toolkit is provided "as is" without warranties. The maintainer assumes no
-        liability for misuse or reliance on third-party services.
-      </p>
-      <p>
-        All external links redirect to third-party platforms under their own terms.
-      </p>
-    </section>
-
-    <section id="contactSection" class="footer-section">
-      <h3>Contact</h3>
-      <p>
-        For feedback, issues, or suggestions, contact:
-      </p>
-      <p>
-        <strong>Email:</strong> contact@soctoolkit.com
-      </p>
-    </section>
-  </div>
-</footer>
-
-<div id="newsTicker" style="display:none;">
-    <span id="tickerLabel" class="ticker-label">📰 SECURITY NEWS</span>
-    <div class="ticker-track">
-        <div id="tickerContent" class="ticker-content"></div>
+<div id="footerStack">
+    <div id="footerPanel">
+        <div class="footer-sections">
+            <section id="aboutSection" class="footer-section">
+                <h3>About SOC Toolkit</h3>
+                <p>SOC Toolkit is a free, browser-based utility designed to assist security analysts, incident responders, and threat researchers in daily investigations.</p>
+                <p>The project is maintained by an independent security professional and follows a community-driven approach. Feedback and improvements are welcome.</p>
+            </section>
+            <section id="privacySection" class="footer-section">
+                <h3>Privacy Policy</h3>
+                <p>We do not collect, store, or process any information entered by users into this website. All user-provided data is processed locally in the user's browser and is never transmitted to, logged by, or stored on our servers.</p>
+                <p>We use Google Analytics to collect anonymous, aggregated usage statistics. No user-submitted data is shared with Google Analytics.</p>
+                <p>Google Privacy Policy: <a href="https://policies.google.com/privacy" target="_blank" rel="noopener">https://policies.google.com/privacy</a></p>
+            </section>
+            <section id="termsSection" class="footer-section">
+                <h3>Terms of Service</h3>
+                <p>SOC Toolkit is provided "as is" without warranties. The maintainer assumes no liability for misuse or reliance on third-party services. All external links redirect to third-party platforms under their own terms.</p>
+            </section>
+            <section id="contactSection" class="footer-section">
+                <h3>Contact</h3>
+                <p>For feedback, issues, or suggestions: <strong>contact@soctoolkit.com</strong></p>
+            </section>
+        </div>
+    </div>
+    <div id="footerBar">
+        <span class="footer-copy">© <span id="currentYear"></span> SOC Toolkit. All rights reserved.</span>
+        <span class="footer-nav">
+            <button class="footer-btn" data-target="aboutSection">About</button>
+            <button class="footer-btn" data-target="privacySection">Privacy</button>
+            <button class="footer-btn" data-target="termsSection">Terms</button>
+            <button class="footer-btn" data-target="contactSection">Contact</button>
+        </span>
     </div>
 </div>
+
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.2/Sortable.min.js"></script>
 <script src="./app.js"></script>

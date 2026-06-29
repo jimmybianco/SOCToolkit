@@ -319,7 +319,7 @@ function parseMultipleIoCs(raw) {
 const OPEN_PREF_KEY = "soc_openall_preferences";
 
 function loadOpenPrefs() {
-    return JSON.parse(localStorage.getItem(OPEN_PREF_KEY) || "{}");
+    try { return JSON.parse(localStorage.getItem(OPEN_PREF_KEY) || "{}"); } catch { return {}; }
 }
 
 function saveOpenPrefs(prefs) {
@@ -710,7 +710,7 @@ function openCustomToolModal(type) {
     const overlay = document.createElement("div");
     overlay.id        = "customToolModal";
     overlay.className = "modal-overlay";
-    overlay.onclick   = e => { if (e.target === overlay) overlay.remove(); };
+    overlay.onclick   = e => { if (e.target === overlay) { overlay.remove(); document.removeEventListener("keydown", onKeyDown); } };
 
     const box = document.createElement("div");
     box.className = "modal-box";
@@ -749,7 +749,9 @@ function openCustomToolModal(type) {
         setTimeout(() => dataTag.textContent = orig, 1000);
     };
 
-    document.getElementById("ctCancel").onclick = () => overlay.remove();
+    const closeModal = () => { overlay.remove(); document.removeEventListener("keydown", onKeyDown); };
+
+    document.getElementById("ctCancel").onclick = closeModal;
     document.getElementById("ctSave").onclick   = () => {
         const name    = document.getElementById("ctName").value.trim();
         const url     = document.getElementById("ctUrl").value.trim();
@@ -773,7 +775,7 @@ function openCustomToolModal(type) {
                 addCustomTool(t, { name, url });
             }
         });
-        overlay.remove();
+        closeModal();
         renderLinks(currentRaw);
         showToast(`"${name}" added!`);
     };
@@ -781,8 +783,13 @@ function openCustomToolModal(type) {
     // Focus name input
     setTimeout(() => document.getElementById("ctName")?.focus(), 50);
 
-    // Close on Escape
-    const onKeyDown = (e) => { if (e.key === "Escape") { overlay.remove(); document.removeEventListener("keydown", onKeyDown); } };
+    // Enter to save, Escape to close
+    const onKeyDown = (e) => {
+        if (e.key === "Escape") closeModal();
+        if (e.key === "Enter" && document.activeElement?.id !== "ctCancel") {
+            document.getElementById("ctSave")?.click();
+        }
+    };
     document.addEventListener("keydown", onKeyDown);
 }
 
@@ -792,7 +799,8 @@ function showModalError(el, msg) {
 }
 
 /* ================= SETTINGS MENU ================= */
-const CONFIG_KEYS = [ORDER_KEY, OPEN_PREF_KEY, CUSTOM_TOOLS_KEY, "theme"];
+const CUSTOM_RSS_KEY = "soctk_custom_rss";
+const CONFIG_KEYS = [ORDER_KEY, OPEN_PREF_KEY, CUSTOM_TOOLS_KEY, "theme", CUSTOM_RSS_KEY];
 
 document.getElementById("settingsToggle").onclick = (e) => {
     e.stopPropagation();
@@ -853,8 +861,12 @@ document.getElementById("importConfigInput").onchange = (e) => {
 
 // ── Reset ──
 document.getElementById("resetConfig").onclick = () => {
-    if (!confirm("Restore defaults? This will remove your custom tools, order and unlock preferences.")) return;
+    if (!confirm("Restore defaults? This will remove your custom tools, order, unlock preferences and news cache.")) return;
     CONFIG_KEYS.forEach(k => localStorage.removeItem(k));
+    // Clear all feed caches (soctk_feed_*)
+    Object.keys(localStorage)
+        .filter(k => k.startsWith(LS_FEED_PREFIX))
+        .forEach(k => localStorage.removeItem(k));
     document.getElementById("settingsDropdown").style.display = "none";
     showToast("Restored! Reloading...");
     setTimeout(() => location.reload(), 1200);
@@ -1047,12 +1059,26 @@ document.querySelectorAll(".footer-btn").forEach(btn => {
     btn.addEventListener("click", () => {
         const targetId = btn.dataset.target;
         const section  = document.getElementById(targetId);
+        const panel    = document.getElementById("footerPanel");
+        const ticker   = document.getElementById("newsTicker");
+        const opening  = section.style.display !== "block";
 
-        document.querySelectorAll(".footer-section").forEach(sec => {
-            if (sec !== section) sec.style.display = "none";
-        });
+        document.querySelectorAll(".footer-section").forEach(s => s.style.display = "none");
+        document.querySelectorAll(".footer-btn").forEach(b => b.classList.remove("active"));
 
-        section.style.display = section.style.display === "block" ? "none" : "block";
+        if (opening) {
+            section.style.display = "block";
+            btn.classList.add("active");
+        }
+
+        // Measure actual content height before CSS transition kicks in
+        const panelH         = opening ? panel.scrollHeight : 0;
+        _footerPanelOpen     = opening;
+        _footerPanelH        = panelH;
+        panel.classList.toggle("open", opening);
+
+        ticker.style.bottom  = (FOOTER_BAR_H + panelH) + "px";
+        document.body.style.paddingBottom = _tickerPaddingBottom();
     });
 });
 /* ================= PARTICLES SYSTEM ================= */
@@ -1089,7 +1115,7 @@ window.addEventListener("mousemove", e => {
 const MAX_PARTICLES = 200;
 window.addEventListener("click", e => {
     const tag = e.target.tagName;
-    if (tag === "INPUT" || tag === "TEXTAREA" || tag === "BUTTON" || tag === "A" || e.target.closest("a, button, .ioc-copy, .ioc-header-copy, .link-card, footer")) return;
+    if (tag === "INPUT" || tag === "TEXTAREA" || tag === "BUTTON" || tag === "A" || e.target.closest("a, button, .ioc-copy, .ioc-header-copy, .link-card, #footerStack")) return;
     for (let i = 0; i < 8; i++) {
         if (particles.length >= MAX_PARTICLES) particles.shift(); // remove oldest
         const p = new Particle();
@@ -1223,24 +1249,63 @@ const NEWS_SOURCES = [
     { name: "The DFIR Report",  rss: "https://thedfirreport.com/feed/" },
 ];
 
-const RSS2JSON   = "https://api.rss2json.com/v1/api.json?rss_url=";
-const NEWS_TTL   = 60 * 60 * 1000;
-let _newsCache   = {};
-let _newsResults = null;
-let _newsFilter  = "All";
+const RSS2JSON       = "https://api.rss2json.com/v1/api.json?rss_url=";
+const NEWS_TTL_MS    = 5 * 60 * 60 * 1000; // 5 hours
+const LS_FEED_PREFIX = "soctk_feed_";
+let _newsResults    = null;
+let _newsFilter     = "All";
+let _newsPanelOpen  = false;
+let _lastTickerItems = [];
+const TICKER_MODE_KEY = "tickerMode";
+let _tickerMode     = localStorage.getItem(TICKER_MODE_KEY) || "card";
 
-function getCachedFeed(name) {
-    const e = _newsCache[name];
-    return (e && Date.now() - e.ts < NEWS_TTL) ? e.items : null;
+let _customSources = [];
+(function loadCustomSources() {
+    try { _customSources = JSON.parse(localStorage.getItem(CUSTOM_RSS_KEY) || "[]"); }
+    catch { _customSources = []; }
+})();
+
+function saveCustomSources() {
+    try { localStorage.setItem(CUSTOM_RSS_KEY, JSON.stringify(_customSources)); } catch {}
 }
 
-function setCachedFeed(name, items) {
-    _newsCache[name] = { ts: Date.now(), items };
+function getActiveSources() {
+    return [...NEWS_SOURCES, ..._customSources];
 }
 
-async function fetchFeed(source) {
-    const cached = getCachedFeed(source.name);
-    if (cached) return { source, items: cached, ok: true };
+function _lsKey(name) {
+    return LS_FEED_PREFIX + name.replace(/\s+/g, "_");
+}
+
+function getStoredFeed(name) {
+    try {
+        const raw = localStorage.getItem(_lsKey(name));
+        return raw ? JSON.parse(raw) : null; // { ts, items } or null
+    } catch { return null; }
+}
+
+function storeAndMergeFeed(name, incoming) {
+    const existing = (getStoredFeed(name) || {}).items || [];
+    const seen     = new Set();
+    const merged   = [...incoming, ...existing].filter(item => {
+        const key = item.link || item.guid || item.title;
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+    });
+    merged.sort((a, b) => parseNewsDate(b.pubDate) - parseNewsDate(a.pubDate));
+    const final = merged.slice(0, ITEMS_PER_SOURCE);
+    try { localStorage.setItem(_lsKey(name), JSON.stringify({ ts: Date.now(), items: final })); } catch {}
+    return final;
+}
+
+async function fetchFeed(source, forceRefresh = false) {
+    const stored  = getStoredFeed(source.name);
+    const isFresh = stored && (Date.now() - stored.ts < NEWS_TTL_MS);
+
+    if (isFresh && !forceRefresh) {
+        return { source, items: stored.items, ok: true };
+    }
 
     const controller = new AbortController();
     const tid = setTimeout(() => controller.abort(), 8000);
@@ -1249,11 +1314,14 @@ async function fetchFeed(source) {
         const data = await res.json();
         clearTimeout(tid);
         if (data.status !== "ok") throw new Error("bad status");
-        const items = data.items || [];
-        setCachedFeed(source.name, items);
-        return { source, items, ok: true };
+        const merged = storeAndMergeFeed(source.name, data.items || []);
+        return { source, items: merged, ok: true };
     } catch {
         clearTimeout(tid);
+        // Fallback to stale cache rather than showing nothing
+        if (stored && stored.items.length) {
+            return { source, items: stored.items, ok: true };
+        }
         return { source, items: [], ok: false };
     }
 }
@@ -1291,6 +1359,10 @@ const ITEMS_PER_SOURCE = 15;
 function getThumb(item) {
     if (item.thumbnail && item.thumbnail.startsWith("http")) return item.thumbnail;
     if (item.enclosure?.link && /^https?:\/\//.test(item.enclosure.link)) return item.enclosure.link;
+    // Extract first <img src> from content or description HTML
+    const html = item.content || item.description || "";
+    const m    = html.match(/<img[^>]+src=["']([^"']+)["']/i);
+    if (m && /^https?:\/\//.test(m[1])) return m[1];
     return null;
 }
 
@@ -1307,13 +1379,35 @@ function renderNewsUI() {
     // ── Filter buttons ──
     filtersEl.innerHTML = "";
     ["All", ..._newsResults.map(r => r.source.name)].forEach(name => {
-        const failed      = name !== "All" && _newsResults.find(r => r.source.name === name && !r.ok);
-        const btn         = document.createElement("button");
-        btn.textContent   = name + (failed ? " ⚠" : "");
-        btn.className     = "news-filter-btn" + (_newsFilter === name ? " news-filter-active" : "");
-        btn.onclick       = () => { _newsFilter = name; renderNewsUI(); };
+        const failed   = name !== "All" && _newsResults.find(r => r.source.name === name && !r.ok);
+        const isCustom = name !== "All" && _customSources.some(s => s.name === name);
+        const btn      = document.createElement("button");
+        btn.className  = "news-filter-btn" + (_newsFilter === name ? " news-filter-active" : "");
+        btn.onclick    = () => { _newsFilter = name; renderNewsUI(); };
+
+        const label = document.createElement("span");
+        label.textContent = name + (failed ? " ⚠" : "");
+        btn.appendChild(label);
+
+        if (isCustom) {
+            btn.classList.add("has-remove");
+            const x = document.createElement("span");
+            x.className   = "news-filter-remove";
+            x.textContent = "❌";
+            x.title       = "Remove this feed";
+            x.onclick     = e => { e.stopPropagation(); removeCustomSource(name); };
+            btn.appendChild(x);
+        }
+
         filtersEl.appendChild(btn);
     });
+
+    const addRssBtn     = document.createElement("button");
+    addRssBtn.className = "news-filter-btn news-add-rss-btn";
+    addRssBtn.title     = "Add custom RSS feed";
+    addRssBtn.innerHTML = `<span class="add-rss-plus">+</span><span class="add-rss-label">RSS</span>`;
+    addRssBtn.onclick   = openAddRssModal;
+    filtersEl.appendChild(addRssBtn);
 
     // ── Collect + filter items ──
     let items = [];
@@ -1323,7 +1417,7 @@ function renderNewsUI() {
     });
 
     if (_newsFilter !== "All") items = items.filter(i => i._source === _newsFilter);
-    items.sort((a, b) => new Date(b.pubDate) - new Date(a.pubDate));
+    items.sort((a, b) => parseNewsDate(b.pubDate) - parseNewsDate(a.pubDate));
 
     // ── Render items ──
     feedEl.innerHTML = "";
@@ -1350,6 +1444,7 @@ function renderNewsUI() {
             img.src       = thumb;
             img.alt       = "";
             img.onerror   = () => img.remove();
+            img.onload    = () => { if (img.naturalWidth < 50 || img.naturalHeight < 50) img.remove(); };
             a.appendChild(img);
         }
 
@@ -1390,43 +1485,108 @@ function renderNewsUI() {
     });
 }
 
+function removeCustomSource(name) {
+    _customSources = _customSources.filter(s => s.name !== name);
+    saveCustomSources();
+    try { localStorage.removeItem(_lsKey(name)); } catch {}
+    if (_newsFilter === name) _newsFilter = "All";
+    loadNews();
+}
+
+function openAddRssModal() {
+    document.getElementById("addRssModal")?.remove();
+
+    const overlay = document.createElement("div");
+    overlay.id        = "addRssModal";
+    overlay.className = "modal-overlay";
+    overlay.onclick   = e => { if (e.target === overlay) overlay.remove(); };
+
+    const box = document.createElement("div");
+    box.className = "modal-box";
+    box.innerHTML = `
+        <h3 class="modal-title">Add RSS Feed</h3>
+        <label class="modal-label">Name
+            <input id="rssName" class="modal-input" type="text" placeholder="e.g. My Blog" maxlength="40">
+        </label>
+        <label class="modal-label">RSS URL
+            <input id="rssUrl" class="modal-input" type="url" placeholder="https://example.com/feed.xml">
+        </label>
+        <div class="modal-actions">
+            <button class="modal-btn modal-btn-primary" id="rssConfirm">Add Feed</button>
+            <button class="modal-btn" id="rssCancel">Cancel</button>
+        </div>`;
+    overlay.appendChild(box);
+    document.body.appendChild(overlay);
+    document.getElementById("rssName").focus();
+
+    const confirmRss = () => {
+        const name = document.getElementById("rssName").value.trim();
+        const rss  = document.getElementById("rssUrl").value.trim();
+
+        if (!name) { showToast("Enter a name for the feed."); return; }
+        if (!rss || !/^https?:\/\//i.test(rss)) { showToast("Enter a valid RSS URL."); return; }
+        if (getActiveSources().some(s => s.name === name)) {
+            showToast("A source with that name already exists."); return;
+        }
+
+        _customSources.push({ name, rss });
+        saveCustomSources();
+        overlay.remove();
+        showToast(`Added "${name}" — loading…`);
+        loadNews();
+    };
+
+    document.getElementById("rssCancel").onclick  = () => overlay.remove();
+    document.getElementById("rssConfirm").onclick = confirmRss;
+    box.addEventListener("keydown", e => {
+        if (e.key === "Enter" && document.activeElement?.id !== "rssCancel") confirmRss();
+        if (e.key === "Escape") overlay.remove();
+    });
+}
+
 function updateTicker(items) {
     const ticker  = document.getElementById("newsTicker");
     const content = document.getElementById("tickerContent");
-    if (!items.length) { ticker.style.display = "none"; return; }
+
+    // only show items that have an image
+    const withImg = items.filter(item => getThumb(item));
+    if (!withImg.length) { ticker.style.display = "none"; return; }
 
     content.innerHTML = "";
 
     const makeSet = () => {
         const frag = document.createDocumentFragment();
-        items.forEach(item => {
-            const a   = document.createElement("a");
+        withImg.forEach(item => {
+            const a = document.createElement("a");
             a.className = "ticker-item";
             a.href      = item.link;
             a.target    = "_blank";
             a.rel       = "noopener noreferrer";
             a.addEventListener("click", e => e.stopPropagation());
 
-            const thumb = getThumb(item);
-            if (thumb) {
-                const img     = document.createElement("img");
-                img.className = "ticker-thumb";
-                img.src       = thumb;
-                img.alt       = "";
-                img.onerror   = () => img.remove();
-                a.appendChild(img);
-            }
+            const img     = document.createElement("img");
+            img.className = "ticker-thumb";
+            img.src       = getThumb(item);
+            img.alt       = "";
+            img.onerror   = () => { a.style.display = "none"; };
+            img.onload    = () => { if (img.naturalWidth < 50 || img.naturalHeight < 50) a.style.display = "none"; };
+            a.appendChild(img);
 
-            const text       = document.createElement("span");
-            text.textContent = item.title;
-            a.appendChild(text);
+            const body = document.createElement("div");
+            body.className = "ticker-card-body";
 
+            const source       = document.createElement("span");
+            source.className   = "ticker-card-source";
+            source.textContent = item._source || "";
+            body.appendChild(source);
+
+            const title       = document.createElement("span");
+            title.className   = "ticker-card-title";
+            title.textContent = item.title;
+            body.appendChild(title);
+
+            a.appendChild(body);
             frag.appendChild(a);
-
-            const sep       = document.createElement("span");
-            sep.className   = "ticker-sep";
-            sep.textContent = " ◆ ";
-            frag.appendChild(sep);
         });
         return frag;
     };
@@ -1434,28 +1594,67 @@ function updateTicker(items) {
     content.appendChild(makeSet());
     content.appendChild(makeSet()); // duplicate for seamless loop
 
-    const totalChars = items.reduce((s, i) => s + i.title.length, 0);
-    content.style.animationDuration = `${Math.max(30, totalChars * 0.13)}s`;
+    _lastTickerItems = withImg;
+    _applyTickerSpeed();
+
+    ticker.dataset.mode = _newsPanelOpen ? "compact" : _tickerMode;
     ticker.style.display = "flex";
 }
 
-async function loadNews(forceRefresh = false) {
-    if (forceRefresh) _newsCache = {};
+function _applyTickerSpeed() {
+    const content = document.getElementById("tickerContent");
+    if (!content || !_lastTickerItems.length) return;
+    const effectiveMode = _newsPanelOpen ? "compact" : _tickerMode;
+    let duration;
+    if (effectiveMode === "compact") {
+        const totalChars = _lastTickerItems.reduce((s, i) => s + i.title.length, 0);
+        duration = Math.max(80, totalChars * 0.22); // slower in compact
+    } else {
+        duration = Math.max(40, _lastTickerItems.length * 220 / 80); // card: px-based
+    }
+    content.style.animationDuration = `${duration}s`;
+}
 
-    document.getElementById("newsFeed").innerHTML    = `<p class="news-status">Loading news from ${NEWS_SOURCES.length} sources…</p>`;
+const FOOTER_BAR_H  = 36;
+let _savedTickerMode = null;
+let _footerPanelOpen = false;
+let _footerPanelH    = 0;
+
+function _tickerPaddingBottom() {
+    return `${(_tickerMode === "card" ? 160 : 62) + FOOTER_BAR_H + _footerPanelH}px`;
+}
+
+function _applyModeBtn() {
+    const btn = document.getElementById("tickerModeToggle");
+    btn.textContent = _tickerMode === "card" ? "≡" : "⊞";
+    btn.title       = _tickerMode === "card" ? "Switch to compact view" : "Switch to card view";
+}
+
+function toggleTickerMode() {
+    _tickerMode = _tickerMode === "card" ? "compact" : "card";
+    localStorage.setItem(TICKER_MODE_KEY, _tickerMode);
+    _applyModeBtn();
+    document.getElementById("newsTicker").dataset.mode = _tickerMode;
+    document.body.style.paddingBottom = _tickerPaddingBottom();
+    _applyTickerSpeed();
+}
+
+async function loadNews(forceRefresh = false) {
+    const active = getActiveSources();
+    document.getElementById("newsFeed").innerHTML    = `<p class="news-status">Loading news from ${active.length} sources…</p>`;
     document.getElementById("newsFilters").innerHTML = "";
 
-    const settled = await Promise.allSettled(NEWS_SOURCES.map(fetchFeed));
-    _newsResults  = NEWS_SOURCES.map((source, i) => {
+    const settled = await Promise.allSettled(active.map(s => fetchFeed(s, forceRefresh)));
+    _newsResults  = active.map((source, i) => {
         const r = settled[i];
         return r.status === "fulfilled" ? r.value : { source, items: [], ok: false };
     });
 
     // Collect all items across sources for the ticker
     const allItems = [];
-    _newsResults.forEach(({ items, ok }) => {
+    _newsResults.forEach(({ source, items, ok }) => {
         if (!ok) return;
-        items.slice(0, ITEMS_PER_SOURCE).forEach(item => allItems.push(item));
+        items.slice(0, ITEMS_PER_SOURCE).forEach(item => allItems.push({ ...item, _source: source.name }));
     });
     allItems.sort((a, b) => parseNewsDate(b.pubDate) - parseNewsDate(a.pubDate));
     updateTicker(allItems);
@@ -1465,15 +1664,43 @@ async function loadNews(forceRefresh = false) {
 
 function toggleNewsSection() {
     const section = document.getElementById("newsSection");
-    const opening = section.style.display === "none";
-    section.style.display = opening ? "block" : "none";
-    if (opening) {
+    const ticker  = document.getElementById("newsTicker");
+    const badge   = document.querySelector(".ticker-expand-badge");
+    _newsPanelOpen = section.style.display === "none";
+    section.style.display = _newsPanelOpen ? "block" : "none";
+
+    if (_newsPanelOpen) {
+        // Save current mode and force compact
+        _savedTickerMode = _tickerMode;
+        _tickerMode = "compact";
+        _applyModeBtn();
+        ticker.dataset.mode = "compact";
+        document.body.style.paddingBottom = _tickerPaddingBottom();
+        if (badge) badge.textContent = "▼ CLOSE";
+        _applyTickerSpeed();
         if (!_newsResults) loadNews();
         requestAnimationFrame(() => section.scrollIntoView({ behavior: "smooth", block: "start" }));
+    } else {
+        // Restore saved mode
+        if (_savedTickerMode !== null) {
+            _tickerMode = _savedTickerMode;
+            _savedTickerMode = null;
+            localStorage.setItem(TICKER_MODE_KEY, _tickerMode);
+        }
+        _applyModeBtn();
+        ticker.dataset.mode = _tickerMode;
+        document.body.style.paddingBottom = _tickerPaddingBottom();
+        if (badge) badge.textContent = "▲ ALL";
+        _applyTickerSpeed();
     }
 }
 
 document.getElementById("tickerLabel").addEventListener("click", toggleNewsSection);
+document.querySelector(".ticker-expand-badge")?.addEventListener("click", toggleNewsSection);
+document.getElementById("tickerModeToggle").addEventListener("click", e => {
+    e.stopPropagation();
+    toggleTickerMode();
+});
 document.getElementById("newsRefresh").addEventListener("click", () => loadNews(true));
 
 /* ================= END ================= */
