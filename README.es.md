@@ -9,95 +9,95 @@
 ╚══════╝ ╚═════╝  ╚═════╝        ╚═╝    ╚═════╝  ╚═════╝ ╚══════╝╚═╝  ╚═╝╚═╝   ╚═╝
 ```
 
-### One indicator in, dozens of open-source intel sources out — instantly.
+### Un indicador, decenas de fuentes de inteligencia abierta — al instante.
 
-[🇪🇸 Español](README.md) · [🇬🇧 English](README.en.md)
+[🇬🇧 English](README.md) · [🇪🇸 Español](README.es.md)
 
 <br>
 
-[![Live](https://img.shields.io/badge/demo-soctoolkit.com-black?style=for-the-badge&labelColor=0d1117)](https://soctoolkit.com)
-![Privacy](https://img.shields.io/badge/PRIVACY-100%25_CLIENT--SIDE-9acd00?style=for-the-badge&labelColor=0d1117)
+[![Demo](https://img.shields.io/badge/demo-soctoolkit.com-black?style=for-the-badge&labelColor=0d1117)](https://soctoolkit.com)
+![Privacidad](https://img.shields.io/badge/PRIVACIDAD-100%25_CLIENT--SIDE-9acd00?style=for-the-badge&labelColor=0d1117)
 ![Stack](https://img.shields.io/badge/STACK-VANILLA_JS-9acd00?style=for-the-badge&labelColor=0d1117)
 
 <br>
 
-![Sources](https://img.shields.io/badge/SOURCES-90%2B-9acd00?style=flat-square&labelColor=0d1117)
-![IoC%20Types](https://img.shields.io/badge/IOC_TYPES-5-9acd00?style=flat-square&labelColor=0d1117)
-![Backend](https://img.shields.io/badge/BACKEND-NONE-9acd00?style=flat-square&labelColor=0d1117)
-![Account](https://img.shields.io/badge/ACCOUNT_NEEDED-NO-9acd00?style=flat-square&labelColor=0d1117)
-![Author](https://img.shields.io/badge/AUTHOR-Jimmy_Bianco-9acd00?style=flat-square&labelColor=0d1117)
+![Fuentes](https://img.shields.io/badge/FUENTES-90%2B-9acd00?style=flat-square&labelColor=0d1117)
+![Tipos%20IoC](https://img.shields.io/badge/TIPOS_IOC-5-9acd00?style=flat-square&labelColor=0d1117)
+![Backend](https://img.shields.io/badge/BACKEND-NINGUNO-9acd00?style=flat-square&labelColor=0d1117)
+![Cuenta](https://img.shields.io/badge/CUENTA_REQUERIDA-NO-9acd00?style=flat-square&labelColor=0d1117)
+![Autor](https://img.shields.io/badge/AUTOR-Jimmy_Bianco-9acd00?style=flat-square&labelColor=0d1117)
 
 </div>
 
 ---
 
-## 🧬 Overview
+## 🧬 Descripción general
 
-**SOC Toolkit** is a free, browser-based utility built for SOC analysts, incident responders, and threat hunters. Paste in an indicator — domain, IP, URL, hash, or email — and it's auto-detected and instantly resolved into ready-to-open links across dozens of reputation, sandboxing, DNS/WHOIS, dark web, and OSINT platforms. No tab-hunting, no memorizing each site's URL syntax.
+**SOC Toolkit** es una herramienta web gratuita, 100% client-side, pensada para analistas SOC, respondedores de incidentes y threat hunters. Pegás un indicador —dominio, IP, URL, hash o email— y la herramienta lo detecta automáticamente y lo resuelve al instante en enlaces listos para abrir hacia decenas de plataformas de reputación, sandboxing, DNS/WHOIS, dark web y OSINT. Sin cazar pestañas, sin memorizar la sintaxis de cada sitio.
 
-There is no backend, no database, and no account to create. Everything runs client-side, in your browser.
+No hay backend, no hay base de datos, no hay cuenta que crear. Todo corre en el navegador.
 
-🔗 **Try it live:** [soctoolkit.com](https://soctoolkit.com)
+🔗 **Probalo en vivo:** [soctoolkit.com](https://soctoolkit.com)
 
 <div align="center">
 
-### 📊 AT A GLANCE
+### 📊 EN NÚMEROS
 
-| Sources | Categories | IoC types | Backend | Setup |
+| Fuentes | Categorías | Tipos de IoC | Backend | Setup |
 |:---:|:---:|:---:|:---:|:---:|
-| **90+** | **7** | **5** | **None** | **Open URL** |
+| **90+** | **7** | **5** | **Ninguno** | **Abrir URL** |
 
 </div>
 
 ---
 
-## ⚡ Capabilities
+## ⚡ Capacidades
 
-| Module | Description |
+| Módulo | Descripción |
 |--------|-------------|
-| 🎯 **IoC auto-detection** | Recognizes domains, IPv4/IPv6, URLs, hashes (MD5/SHA1/SHA256) and emails, and adapts available sources accordingly. Also parses multiple IoCs pasted at once. |
-| 🛡️ **Defang / normalize** | One-click conversion to `hxxp://evil[.]com` style, safe for pasting into tickets and reports. |
-| 🔓 **Open Unlocked** | Opens every unrestricted source for the current indicator in one click. |
-| 🧩 **Custom tools & feeds** | Add your own lookup sources or RSS feeds, and reorder everything via drag & drop (Sortable.js). |
-| 📰 **Security news feed** | Live ticker and feed aggregating RSS from The Hacker News, BleepingComputer, Securelist, Unit 42, CrowdStrike, Microsoft Security, The DFIR Report, and more — filterable, with manual refresh. |
-| ⚙️ **Export / import config** | Back up and restore your sources, ordering, and theme as a single JSON file. |
-| 🌓 **Theming & UX** | Light/dark theme, animated particle background, terminal-style boot screen, and a persistent UTC clock. |
-| 🔒 **Privacy by design** | No submitted data is sent to, logged by, or stored on any server. Everything runs locally in the browser. |
+| 🎯 **Detección automática de IoC** | Reconoce dominios, IPv4/IPv6, URLs, hashes (MD5/SHA1/SHA256) y emails, y adapta las fuentes disponibles. Soporta además el parseo de múltiples IoCs pegados a la vez. |
+| 🛡️ **Defanging / normalización** | Convierte el valor a formato `hxxp://evil[.]com` con un clic, listo para compartir en tickets y reportes. |
+| 🔓 **Open Unlocked** | Abre en un solo clic todas las fuentes no restringidas para el indicador analizado. |
+| 🧩 **Fuentes y herramientas personalizadas** | Agregá tus propias fuentes de lookup o feeds RSS, y reordená todo por drag & drop (Sortable.js). |
+| 📰 **Panel de noticias de ciberseguridad** | Ticker y feed en vivo agregando RSS de The Hacker News, BleepingComputer, Securelist, Unit 42, CrowdStrike, Microsoft Security, The DFIR Report, entre otros — con filtros y refresco manual. |
+| ⚙️ **Exportar / importar configuración** | Backup y restauración de tus fuentes, orden y tema en un único archivo JSON. |
+| 🌓 **Theming & UX** | Tema claro/oscuro, fondo de partículas animado, boot screen estilo terminal y reloj UTC persistente. |
+| 🔒 **Privacidad por diseño** | Ningún dato ingresado se envía, registra ni almacena en servidores propios. Todo el procesamiento ocurre localmente en el navegador. |
 
 ---
 
-## 🗂️ Supported IoC types
+## 🗂️ Tipos de indicadores soportados
 
-| Type | Example |
+| Tipo | Ejemplo |
 |---|---|
-| Domain | `evil.com` |
+| Dominio | `evil.com` |
 | IP (v4 / v6) | `8.8.8.8` |
 | URL | `https://evil.com/payload` |
 | Hash | MD5 / SHA1 / SHA256 |
-| Email | `user@domain.com` |
+| Email | `user@dominio.com` |
 
 ---
 
-## 🌐 Integrated sources, by category
+## 🌐 Fuentes integradas, por categoría
 
 <details>
-<summary><strong>Reputation & Threat Intelligence</strong></summary>
+<summary><strong>Reputación & Threat Intelligence</strong></summary>
 
-VirusTotal · AbuseIPDB · AlienVault OTX · IBM X-Force Exchange · Talos Reputation · GreyNoise · Censys · Shodan · ThreatFox · URLhaus · URLScan · URLVoid · Threat.Rip · Guardpot · SPUR (VPN detection)
+VirusTotal · AbuseIPDB · AlienVault OTX · IBM X-Force Exchange · Talos Reputation · GreyNoise · Censys · Shodan · ThreatFox · URLhaus · URLScan · URLVoid · Threat.Rip · Guardpot · SPUR (detección de VPN)
 
 </details>
 
 <details>
-<summary><strong>Malware Sandboxing</strong></summary>
+<summary><strong>Sandboxing de malware</strong></summary>
 
-ANY.RUN · Hybrid Analysis · JOE Sandbox · Triage · MalShare · Valhalla (SIGMA/YARA rules)
+ANY.RUN · Hybrid Analysis · JOE Sandbox · Triage · MalShare · Valhalla (reglas SIGMA/YARA)
 
 </details>
 
 <details>
-<summary><strong>DNS, WHOIS & Network</strong></summary>
+<summary><strong>DNS, WHOIS & Red</strong></summary>
 
-WHOIS · SecurityTrails · DNSLytics · IPinfo · IPLocation · MyIP · RIPEstat · MXToolbox (SuperTool & Email Headers) · Netcraft · Web Check · Port Info
+WHOIS · SecurityTrails · DNSLytics · IPinfo · IPLocation · MyIP · RIPEstat · MXToolbox (SuperTool y Email Headers) · Netcraft · Web Check · Port Info
 
 </details>
 
@@ -109,71 +109,71 @@ Have I Been Pwned · HudsonRock (Infostealer, URL Discovery) · IntelX · Intelb
 </details>
 
 <details>
-<summary><strong>Malware, Living-off-the-Land & Reference</strong></summary>
+<summary><strong>Malware, Living-off-the-Land & Referencia técnica</strong></summary>
 
 GTFOBins · LOLBAS · LOTS Project · MalAPI · CyberChef · ExplainShell · NIST NVD · CVE.org · Exploit-DB · MITRE · Windows EventID Encyclopedia · Trend Micro Threat Encyclopedia
 
 </details>
 
 <details>
-<summary><strong>Anti-fraud, Phishing & Ransomware</strong></summary>
+<summary><strong>Anti-fraude, phishing & ransomware</strong></summary>
 
-Sucuri SiteCheck · CleanTalk (blacklist & malware scan) · Blacklist Checker · Phishing Checker · ClickFix Hunter · No More Ransom · Ransomware.live
+Sucuri SiteCheck · CleanTalk (blacklist y malware scan) · Blacklist Checker · Phishing Checker · ClickFix Hunter · No More Ransom · Ransomware.live
 
 </details>
 
 <details>
-<summary><strong>Other / Utilities</strong></summary>
+<summary><strong>Otros / utilidades</strong></summary>
 
-Wayback Machine (view & save) · Google Translate · Nitter (tweet search) · Browserling · Google Search
+Wayback Machine (ver y guardar) · Google Translate · Nitter (búsqueda de tweets) · Browserling · Google Search
 
 </details>
 
 ---
 
-## 🚀 How it works
+## 🚀 Cómo funciona
 
-1. Paste a domain, IP, URL, hash, or email into the search box.
-2. SOC Toolkit auto-detects the indicator type.
-3. Click an individual source, or hit **Open Unlocked** to open them all at once.
-4. Optionally copy the normalized/defanged value for your report.
-5. Customize sources, ordering, and theme from the settings menu ⚙️.
+1. Pegá un dominio, IP, URL, hash o email en el campo de búsqueda.
+2. SOC Toolkit detecta el tipo de indicador automáticamente.
+3. Elegí una fuente individual o usá **Open Unlocked** para abrir todas de una.
+4. Opcional: copiá el valor normalizado/defanged para tu reporte.
+5. Personalizá fuentes, orden y tema desde el menú de ajustes ⚙️.
 
-No install, no build step:
+Sin instalación, sin build step:
 
 ```bash
 git clone https://github.com/jimmybianco/SOCToolkit.git
 cd SOCToolkit
-open index.html   # or serve statically, e.g. `python3 -m http.server`
+open index.html   # o serví el sitio de forma estática, ej. `python3 -m http.server`
 ```
 
 ---
 
-## 🧱 Tech stack
+## 🧱 Stack técnico
 
-- **Vanilla HTML + CSS + JavaScript** — no framework, no build step.
-- [Sortable.js](https://github.com/SortableJS/Sortable) for drag & drop reordering.
-- `localStorage` for persisting configuration, custom sources, and preferences.
-- No backend, no database — deployable as a static site.
-
----
-
-## 🔒 Privacy
-
-SOC Toolkit does not collect, store, or transmit any data entered by the user. All indicator processing happens locally in the browser. Google Analytics is used only for anonymous, aggregated usage statistics — no user-submitted data is ever shared with it.
+- **HTML + CSS + JavaScript vanilla** — sin frameworks, sin build step.
+- [Sortable.js](https://github.com/SortableJS/Sortable) para el reordenamiento drag & drop.
+- `localStorage` para persistencia de configuración, fuentes personalizadas y preferencias.
+- Sin backend ni base de datos: se despliega como sitio estático.
 
 ---
 
-## 📬 Contact
+## 🔒 Privacidad
 
-Suggestions, bugs, or ideas for new sources? Email **contact@soctoolkit.com** or open an issue on this repository.
+SOC Toolkit no recolecta, almacena ni transmite ningún dato ingresado por el usuario. Todo el procesamiento de indicadores ocurre localmente en el navegador. Se utiliza Google Analytics solo para estadísticas de uso anónimas y agregadas — nunca se comparte información ingresada por el usuario.
 
-If you find it useful, consider buying a coffee ☕ → [buymeacoffee.com/jimmybianco](https://buymeacoffee.com/jimmybianco)
+---
+
+## 📬 Contacto
+
+¿Sugerencias, bugs o ideas de nuevas fuentes? Escribí a **contact@soctoolkit.com** o abrí un issue en este repositorio.
+
+Si te resulta útil, podés invitar un café ☕ → [buymeacoffee.com/jimmybianco](https://buymeacoffee.com/jimmybianco)
 
 ---
 
 <div align="center">
 
-Built and maintained by **[Jimmy Bianco](https://www.linkedin.com/in/jimmybianco)**
+Creado y mantenido por **[Jimmy Bianco](https://www.linkedin.com/in/jimmybianco)**
 
 </div>
