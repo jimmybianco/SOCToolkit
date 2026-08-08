@@ -1,5 +1,7 @@
 <div align="center">
 
+<img src="favicon.ico" width="90" alt="SOC Toolkit alien">
+
 ```
 ███████╗ ██████╗  ██████╗     ████████╗ ██████╗  ██████╗ ██╗     ██╗  ██╗██╗████████╗
 ██╔════╝██╔═══██╗██╔════╝     ╚══██╔══╝██╔═══██╗██╔═══██╗██║     ██║ ██╔╝██║╚══██╔══╝
@@ -9,7 +11,7 @@
 ╚══════╝ ╚═════╝  ╚═════╝        ╚═╝    ╚═════╝  ╚═════╝ ╚══════╝╚═╝  ╚═╝╚═╝   ╚═╝
 ```
 
-### One indicator in, dozens of open-source intel sources out — instantly.
+### 👽 One indicator in, dozens of open-source intel sources out — instantly.
 
 [🇬🇧 English](README.md) · [🇪🇸 Español](README.es.md)
 

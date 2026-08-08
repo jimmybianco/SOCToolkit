@@ -1,5 +1,7 @@
 <div align="center">
 
+<img src="favicon.ico" width="90" alt="SOC Toolkit alien">
+
 ```
 ███████╗ ██████╗  ██████╗     ████████╗ ██████╗  ██████╗ ██╗     ██╗  ██╗██╗████████╗
 ██╔════╝██╔═══██╗██╔════╝     ╚══██╔══╝██╔═══██╗██╔═══██╗██║     ██║ ██╔╝██║╚══██╔══╝
@@ -9,7 +11,7 @@
 ╚══════╝ ╚═════╝  ╚═════╝        ╚═╝    ╚═════╝  ╚═════╝ ╚══════╝╚═╝  ╚═╝╚═╝   ╚═╝
 ```
 
-### Un indicador, decenas de fuentes de inteligencia abierta — al instante.
+### 👽 Un indicador, decenas de fuentes de inteligencia abierta — al instante.
 
 [🇬🇧 English](README.md) · [🇪🇸 Español](README.es.md)
 
