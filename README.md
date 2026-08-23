@@ -15,7 +15,7 @@
 
 <br>
 
-[![Live](https://img.shields.io/badge/demo-soctoolkit.com-black?style=for-the-badge&labelColor=0d1117)](https://soctoolkit.com)
+[![Try it here](https://img.shields.io/badge/TRY_IT_HERE-soctoolkit.com-black?style=for-the-badge&labelColor=0d1117)](https://soctoolkit.com)
 ![Privacy](https://img.shields.io/badge/PRIVACY-100%25_CLIENT--SIDE-9acd00?style=for-the-badge&labelColor=0d1117)
 ![Stack](https://img.shields.io/badge/STACK-VANILLA_JS-9acd00?style=for-the-badge&labelColor=0d1117)
 
@@ -25,7 +25,8 @@
 ![IoC%20Types](https://img.shields.io/badge/IOC_TYPES-5-9acd00?style=flat-square&labelColor=0d1117)
 ![Backend](https://img.shields.io/badge/BACKEND-NONE-9acd00?style=flat-square&labelColor=0d1117)
 ![Account](https://img.shields.io/badge/ACCOUNT_NEEDED-NO-9acd00?style=flat-square&labelColor=0d1117)
-![Author](https://img.shields.io/badge/AUTHOR-Jimmy_Bianco-9acd00?style=flat-square&labelColor=0d1117)
+[![Author](https://img.shields.io/badge/AUTHOR-Jimmy_Bianco-9acd00?style=flat-square&labelColor=0d1117)](https://www.linkedin.com/in/jimmybianco)
+[![Buy Me A Coffee](https://img.shields.io/badge/Buy_Me_A_Coffee-support-FFDD00?style=flat-square&logo=buymeacoffee&logoColor=black&labelColor=0d1117)](https://buymeacoffee.com/jimmybianco)
 
 </div>
 
