@@ -1125,6 +1125,35 @@ body.modern #newsTicker .ticker-item:hover {
     background: #252a40;
 }
 
+.ticker-ad-item {
+    border-style: dashed;
+    border-color: rgba(0,255,0,0.25);
+    cursor: default;
+}
+
+.ticker-ad-label {
+    padding: 6px 9px 0;
+    font-size: 0.62em;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: rgba(0,255,0,0.5);
+}
+
+.ticker-ad-item ins.adsbygoogle {
+    display: block;
+    width: 100%;
+    height: 86px;
+    margin: 4px 0 8px;
+}
+
+body.modern .ticker-ad-item {
+    border-color: rgba(99,102,241,0.3);
+}
+
+body.modern .ticker-ad-label {
+    color: rgba(99,102,241,0.6);
+}
+
 body.modern .ticker-card-source {
     color: #818cf8;
 }
@@ -1209,6 +1238,11 @@ body.modern .ticker-side           { border-right-color: rgba(255,255,255,0.1); 
     -webkit-line-clamp: 1;
     font-size: 0.82em;
     white-space: nowrap;
+}
+
+/* Ads are card-view only; fully removed from layout in compact mode */
+#newsTicker[data-mode="compact"] .ticker-ad-item {
+    display: none;
 }
 
 /* ================= NEWS SECTION ================= */
@@ -1398,6 +1432,26 @@ body.modern .ticker-side           { border-right-color: rgba(255,255,255,0.1); 
     padding: 24px 0;
 }
 
+.news-ad-slot {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 10px 16px;
+    margin-bottom: 8px;
+    min-height: 100px;
+    border: 1px dashed rgba(0,255,0,0.2);
+    border-radius: 6px;
+    background: rgba(0,255,0,0.03);
+    box-sizing: border-box;
+}
+
+.news-ad-label {
+    font-size: 0.65em;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    opacity: 0.4;
+}
+
 /* Modern theme */
 body.modern .news-section-title {
     font-family: "Inter", sans-serif;
@@ -1460,6 +1514,16 @@ body.modern .news-item-desc {
     color: #64748b;
 }
 
+body.modern .news-ad-slot {
+    border-color: rgba(15,23,42,0.12);
+    background: rgba(15,23,42,0.02);
+}
+
+body.modern .news-ad-label {
+    color: #94a3b8;
+    opacity: 1;
+}
+
 @media (max-width: 600px) {
     body { padding-bottom: 188px; }
 
@@ -1475,6 +1539,8 @@ body.modern .news-item-desc {
     #newsTicker .ticker-item { width: 162px; }
 
     .ticker-thumb { height: 72px; }
+
+    .ticker-ad-item ins.adsbygoogle { height: 72px; }
 
     #newsFilters {
         flex-wrap: nowrap;

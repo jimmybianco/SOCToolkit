@@ -1264,6 +1264,14 @@ const NEWS_SOURCES = [
 
 const RSS2JSON       = "https://api.rss2json.com/v1/api.json?rss_url=";
 const NEWS_TTL_MS    = 5 * 60 * 60 * 1000; // 5 hours
+
+// AdSense: conservative in-feed placement. NEWS_AD_SLOT is a placeholder —
+// replace with a real ad unit ID from the AdSense dashboard before this can serve ads.
+const NEWS_AD_CLIENT = "ca-pub-8782794139506972";
+const NEWS_AD_SLOT    = "0000000000";
+const NEWS_AD_EVERY   = 8;
+const NEWS_AD_MAX     = 2;
+const TICKER_AD_EVERY = 6; // card view only; hidden in compact via CSS
 const LS_FEED_PREFIX = "soctk_feed_";
 let _newsResults    = null;
 let _newsFilter     = "All";
@@ -1443,7 +1451,13 @@ function renderNewsUI() {
         return;
     }
 
-    items.forEach(item => {
+    let adsInserted = 0;
+    items.forEach((item, idx) => {
+        if (idx > 0 && idx % NEWS_AD_EVERY === 0 && adsInserted < NEWS_AD_MAX) {
+            feedEl.appendChild(buildNewsAdSlot());
+            adsInserted++;
+        }
+
         const a   = document.createElement("a");
         a.className = "news-card";
         a.href      = item.link;
@@ -1496,6 +1510,51 @@ function renderNewsUI() {
         a.appendChild(body);
         feedEl.appendChild(a);
     });
+}
+
+function buildNewsAdSlot() {
+    const wrap  = document.createElement("div");
+    wrap.className = "news-ad-slot";
+
+    const label = document.createElement("span");
+    label.className   = "news-ad-label";
+    label.textContent = "Advertisement";
+    wrap.appendChild(label);
+
+    const ins = document.createElement("ins");
+    ins.className = "adsbygoogle";
+    ins.style.display = "block";
+    ins.setAttribute("data-ad-client", NEWS_AD_CLIENT);
+    ins.setAttribute("data-ad-slot", NEWS_AD_SLOT);
+    ins.setAttribute("data-ad-format", "auto");
+    ins.setAttribute("data-full-width-responsive", "true");
+    wrap.appendChild(ins);
+
+    try { (window.adsbygoogle = window.adsbygoogle || []).push({}); } catch {}
+
+    return wrap;
+}
+
+function buildTickerAdItem() {
+    const wrap = document.createElement("div");
+    wrap.className = "ticker-item ticker-ad-item";
+
+    const label = document.createElement("span");
+    label.className   = "ticker-ad-label";
+    label.textContent = "Ad";
+    wrap.appendChild(label);
+
+    const ins = document.createElement("ins");
+    ins.className = "adsbygoogle";
+    ins.setAttribute("data-ad-client", NEWS_AD_CLIENT);
+    ins.setAttribute("data-ad-slot", NEWS_AD_SLOT);
+    ins.setAttribute("data-ad-format", "auto");
+    ins.setAttribute("data-full-width-responsive", "true");
+    wrap.appendChild(ins);
+
+    try { (window.adsbygoogle = window.adsbygoogle || []).push({}); } catch {}
+
+    return wrap;
 }
 
 function removeCustomSource(name) {
@@ -1567,9 +1626,15 @@ function updateTicker(items) {
 
     content.innerHTML = "";
 
-    const makeSet = () => {
+    let adAdded = false;
+    const makeSet = (withAd) => {
         const frag = document.createDocumentFragment();
-        withImg.forEach(item => {
+        withImg.forEach((item, idx) => {
+            if (withAd && !adAdded && idx > 0 && idx % TICKER_AD_EVERY === 0) {
+                frag.appendChild(buildTickerAdItem());
+                adAdded = true;
+            }
+
             const a = document.createElement("a");
             a.className = "ticker-item";
             a.href      = item.link;
@@ -1604,8 +1669,8 @@ function updateTicker(items) {
         return frag;
     };
 
-    content.appendChild(makeSet());
-    content.appendChild(makeSet()); // duplicate for seamless loop
+    content.appendChild(makeSet(true));
+    content.appendChild(makeSet(false)); // duplicate for seamless loop; no second ad copy
 
     _lastTickerItems = withImg;
     _applyTickerSpeed();
