@@ -24,6 +24,8 @@ const sources = {
         {name:"ClickFix Hunter", url:"https://clickfix.carsonww.com/domains?query={data}"},
         {name:"RIPEstat (Database)", url:"https://stat.ripe.net/resource/{data}#tab=database"},
         {name:"Nitter (Tweets)", url:"https://nitter.net/search?f=tweets&q={data}&since=&until=&min_faves="},
+		{name:"PulseDive (IOC)", url:"https://pulsedive.com/indicator/?ioc={data}", base64:true},
+		{name:"Kaspersky (IOC)", url:"https://opentip.kaspersky.com/{data}/results?tab=lookup"},
     ],
     ipv6: [
         {name:"VirusTotal", url:"https://www.virustotal.com/gui/ip-address/{data}"},
@@ -45,6 +47,8 @@ const sources = {
         {name:"ClickFix Hunter", url:"https://clickfix.carsonww.com/domains?query={data}"},
         {name:"RIPEstat (Database)", url:"https://stat.ripe.net/resource/{data}#tab=database"},
         {name:"Nitter (Tweets)", url:"https://nitter.net/search?f=tweets&q={data}&since=&until=&min_faves="},
+		{name:"PulseDive (IOC)", url:"https://pulsedive.com/indicator/?ioc={data}", base64:true},
+		{name:"Kaspersky (IOC)", url:"https://opentip.kaspersky.com/{data}/results?tab=lookup"},
     ],
     url: [
         {name:"VirusTotal", url:"https://www.virustotal.com/gui/url/{data}", needsHash:true, encode:true},
@@ -77,7 +81,10 @@ const sources = {
         {name:"ClickFix Hunter", url:"https://clickfix.carsonww.com/domains?query={data}", usesDomain:true},
         {name:"CyberChef", url:"https://gchq.github.io/CyberChef/#recipe=Magic(3,false,false,'')&input={data}", encode:false, base64:true},
         {name:"Nitter (Tweets)", url:"https://nitter.net/search?f=tweets&q={data}&since=&until=&min_faves="},
-    ],
+		{name:"UrlQuery", url:"https://urlquery.net/search?q={data}&view=list&type=reports"},
+		{name:"PulseDive (IOC)", url:"https://pulsedive.com/indicator/?ioc={data}", base64:true},
+		{name:"Kaspersky (IOC)", url:"https://opentip.kaspersky.com/{data}/results?tab=lookup", usesDomain:true},
+	],
     domain: [
         {name:"VirusTotal", url:"https://www.virustotal.com/gui/domain/{data}"},
         {name:"Talos", url:"https://talosintelligence.com/reputation_center/lookup?search={data}"},
@@ -108,6 +115,9 @@ const sources = {
         {name:"Phishing Checker", url:"https://phishing.finsin.cl/list.php", encode:false},
         {name:"ClickFix Hunter", url:"https://clickfix.carsonww.com/domains?query={data}"},
         {name:"Nitter (Tweets)", url:"https://nitter.net/search?f=tweets&q={data}&since=&until=&min_faves="},
+		{name:"UrlQuery", url:"https://urlquery.net/search?q={data}&view=list&type=reports"},
+		{name:"PulseDive (IOC)", url:"https://pulsedive.com/indicator/?ioc={data}", base64:true},
+		{name:"Kaspersky (IOC)", url:"https://opentip.kaspersky.com/{data}/results?tab=lookup", usesDomain:true},
     ],
     hash: [
         {name:"VirusTotal", url:"https://www.virustotal.com/gui/file/{data}"},
@@ -123,6 +133,8 @@ const sources = {
         {name:"URLHaus", url:"https://urlhaus.abuse.ch/browse.php?search={data}"},
         {name:"CyberChef", url:"https://gchq.github.io/CyberChef/#recipe=Magic(3,false,false,'')&input={data}", encode:false, base64:true},
         {name:"Nitter (Tweets)", url:"https://nitter.net/search?f=tweets&q={data}&since=&until=&min_faves="},
+		{name:"PulseDive (IOC)", url:"https://pulsedive.com/indicator/?ioc={data}", base64:true},
+		{name:"Kaspersky (IOC)", url:"https://opentip.kaspersky.com/{data}/results?tab=lookup"},
     ],
     email: [
         {name:"Have I Been Pwned", url:"https://haveibeenpwned.com/unifiedsearch/{data}", usesDomain:false, encode:false},
@@ -148,6 +160,7 @@ const sources = {
         {name:"CVE ORG", url:"https://www.cve.org/CVERecord?id={data}"},
         {name:"CVE RADAR", url:"https://socradar.io/labs/app/cve-radar/{data}"},
         {name:"Exploit DB", url:"https://www.exploit-db.com/search?q={data}"},
+		{name:"Sploitus", url:"https://sploitus.com/?query={data}"},
         {name:"Windows EventID", url:"https://www.ultimatewindowssecurity.com/securitylog/encyclopedia/event.aspx?eventid={data}"},
         {name:"Microsoft ErrorCode", url:"https://login.microsoftonline.com/error?code={data}", encode:false},
         {name:"HudsonRock Infostealer (Username)", url:"https://cavalier.hudsonrock.com/api/json/v2/osint-tools/search-by-username?username={data}", usesDomain:false},
