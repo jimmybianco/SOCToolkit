@@ -1362,7 +1362,7 @@ body.modern .ticker-side           { border-right-color: rgba(255,255,255,0.1); 
 /* ================= NEWS SECTION ================= */
 #newsSection {
     margin: 30px auto 0;
-    max-width: 860px;
+    max-width: 1140px;
     width: 100%;
     text-align: left;
     padding: 0 10px;
@@ -1463,9 +1463,9 @@ body.modern .ticker-side           { border-right-color: rgba(255,255,255,0.1); 
 .news-card {
     display: flex;
     align-items: flex-start;
-    gap: 14px;
-    padding: 14px 16px;
-    margin-bottom: 8px;
+    gap: 18px;
+    padding: 18px 20px;
+    margin-bottom: 10px;
     border: 1px solid rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.2);
     border-radius: 6px;
     text-decoration: none;
@@ -1475,9 +1475,10 @@ body.modern .ticker-side           { border-right-color: rgba(255,255,255,0.1); 
 }
 
 .news-thumb {
-    width: 72px;
-    height: 72px;
-    object-fit: cover;
+    width: 240px;
+    height: 170px;
+    object-fit: contain;
+    background: #111;
     border-radius: 5px;
     flex-shrink: 0;
 }
@@ -1515,7 +1516,7 @@ body.modern .ticker-side           { border-right-color: rgba(255,255,255,0.1); 
 }
 
 .news-card .news-item-title {
-    font-size: 1.05em;
+    font-size: 1.25em;
     font-weight: 600;
     line-height: 1.4;
     color: #ffffff;
@@ -1530,11 +1531,11 @@ body.modern .ticker-side           { border-right-color: rgba(255,255,255,0.1); 
 }
 
 .news-item-desc {
-    font-size: 0.85em;
+    font-size: 0.95em;
     color: rgba(255,255,255,0.5);
     line-height: 1.5;
     display: -webkit-box;
-    -webkit-line-clamp: 2;
+    -webkit-line-clamp: 3;
     -webkit-box-orient: vertical;
     overflow: hidden;
 }
@@ -1591,6 +1592,10 @@ body.modern .news-filter-btn.news-filter-active {
     color: #fff;
     border-color: #6366f1;
     box-shadow: none;
+}
+
+body.modern .news-thumb {
+    background: #f1f5f9;
 }
 
 body.modern .news-card {
@@ -1664,12 +1669,16 @@ body.modern .news-ad-label {
     }
 
     .news-card {
-        gap: 10px;
-        padding: 10px 12px;
+        gap: 12px;
+        padding: 12px 14px;
     }
 
     .news-thumb {
-        width: 56px;
-        height: 56px;
+        width: 150px;
+        height: 110px;
+    }
+
+    .news-card .news-item-title {
+        font-size: 1.1em;
     }
 }
