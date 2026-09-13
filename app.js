@@ -26,6 +26,9 @@ const sources = {
         {name:"Nitter (Tweets)", url:"https://nitter.net/search?f=tweets&q={data}&since=&until=&min_faves="},
 		{name:"PulseDive (IOC)", url:"https://pulsedive.com/indicator/?ioc={data}", base64:true},
 		{name:"Kaspersky (IOC)", url:"https://opentip.kaspersky.com/{data}/results?tab=lookup"},
+        {name:"Feodo Tracker", url:"https://feodotracker.abuse.ch/browse/host/{data}/"},
+        {name:"Spamhaus", url:"https://check.spamhaus.org/results/?query={data}"},
+        {name:"Maltiverse", url:"https://maltiverse.com/intelligence/search;query={data}"},
     ],
     ipv6: [
         {name:"VirusTotal", url:"https://www.virustotal.com/gui/ip-address/{data}"},
@@ -84,6 +87,10 @@ const sources = {
 		{name:"UrlQuery", url:"https://urlquery.net/search?q={data}&view=list&type=reports"},
 		{name:"PulseDive (IOC)", url:"https://pulsedive.com/indicator/?ioc={data}", base64:true},
 		{name:"Kaspersky (IOC)", url:"https://opentip.kaspersky.com/{data}/results?tab=lookup", usesDomain:true},
+        {name:"crt.sh", url:"https://crt.sh/?q={data}", usesDomain:true},
+        {name:"Maltiverse", url:"https://maltiverse.com/intelligence/search;query={data}"},
+        {name:"Google SafeBrowsing (Check)", url:"https://transparencyreport.google.com/safe-browsing/search?url={data}", encode:true},
+        {name:"Google SafeBrowsing (Report)", url:"https://safebrowsing.google.com/safebrowsing/report_phish/?url={data}", encode:true},
 	],
     domain: [
         {name:"VirusTotal", url:"https://www.virustotal.com/gui/domain/{data}"},
@@ -118,6 +125,11 @@ const sources = {
 		{name:"UrlQuery", url:"https://urlquery.net/search?q={data}&view=list&type=reports"},
 		{name:"PulseDive (IOC)", url:"https://pulsedive.com/indicator/?ioc={data}", base64:true},
 		{name:"Kaspersky (IOC)", url:"https://opentip.kaspersky.com/{data}/results?tab=lookup", usesDomain:true},
+        {name:"crt.sh", url:"https://crt.sh/?q={data}", usesDomain:true},
+        {name:"Spamhaus", url:"https://check.spamhaus.org/results/?query={data}"},
+        {name:"Maltiverse", url:"https://maltiverse.com/intelligence/search;query={data}"},
+        {name:"Google SafeBrowsing (Check)", url:"https://transparencyreport.google.com/safe-browsing/search?url={data}", encode:true},
+        {name:"Google SafeBrowsing (Report)", url:"https://safebrowsing.google.com/safebrowsing/report_phish/?url={data}", encode:true},
     ],
     hash: [
         {name:"VirusTotal", url:"https://www.virustotal.com/gui/file/{data}"},
@@ -135,6 +147,9 @@ const sources = {
         {name:"Nitter (Tweets)", url:"https://nitter.net/search?f=tweets&q={data}&since=&until=&min_faves="},
 		{name:"PulseDive (IOC)", url:"https://pulsedive.com/indicator/?ioc={data}", base64:true},
 		{name:"Kaspersky (IOC)", url:"https://opentip.kaspersky.com/{data}/results?tab=lookup"},
+        {name:"MalwareBazaar", url:"https://bazaar.abuse.ch/browse.php?search=sha256%3A{data}"},
+        {name:"Spamhaus", url:"https://check.spamhaus.org/results/?query={data}"},
+        {name:"Maltiverse", url:"https://maltiverse.com/intelligence/search;query={data}"},
     ],
     email: [
         {name:"Have I Been Pwned", url:"https://haveibeenpwned.com/unifiedsearch/{data}", usesDomain:false, encode:false},
@@ -145,6 +160,8 @@ const sources = {
         {name:"Internxt DarkWeb Monitor", url:"https://internxt.com/dark-web-monitor", encode:false},
         {name:"Blacklist Checker", url:"https://blacklistchecker.com/check?input={data}", usesDomain:false, encode:false},
         {name:"Nitter (Tweets)", url:"https://nitter.net/search?f=tweets&q={data}&since=&until=&min_faves="},
+        {name:"LeakCheck", url:"https://leakcheck.io/api/public?check={data}"},
+        {name:"Spamhaus", url:"https://check.spamhaus.org/results/?query={data}"},
     ],
     text: [
         {name:"Google", url:"https://www.google.com/search?q={data}"},
