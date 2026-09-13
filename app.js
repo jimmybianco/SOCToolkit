@@ -1344,6 +1344,9 @@ const NEWS_SOURCES = [
     { name: "Google ThreatIntel", rss: "https://feeds.feedburner.com/threatintelligence/pvexyqv7v0v" },
     { name: "Huntress",         rss: "https://www.huntress.com/blog/rss.xml" },
     { name: "KrebsOnSecurity",  rss: "https://krebsonsecurity.com/feed/" },
+    { name: "AnyRun",           rss: "https://any.run/cybersecurity-blog/category/malware-analysis/feed/" },
+    { name: "Cisco Talos",      rss: "https://blog.talosintelligence.com/category/threat-spotlight/rss/" },
+    { name: "Kaspersky Blog",   rss: "https://www.kaspersky.com/blog/category/threats/feed/" },
 ];
 
 const RSS2JSON       = "https://api.rss2json.com/v1/api.json?rss_url=";
