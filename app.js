@@ -29,6 +29,7 @@ const sources = {
         {name:"Feodo Tracker", url:"https://feodotracker.abuse.ch/browse/host/{data}/"},
         {name:"Spamhaus", url:"https://check.spamhaus.org/results/?query={data}"},
         {name:"Maltiverse", url:"https://maltiverse.com/intelligence/search;query={data}"},
+        {name:"MISP Search", url:"https://search.misp-community.org/?q={data}"},
     ],
     ipv6: [
         {name:"VirusTotal", url:"https://www.virustotal.com/gui/ip-address/{data}"},
@@ -52,6 +53,7 @@ const sources = {
         {name:"Nitter (Tweets)", url:"https://nitter.net/search?f=tweets&q={data}&since=&until=&min_faves="},
 		{name:"PulseDive (IOC)", url:"https://pulsedive.com/indicator/?ioc={data}", base64:true},
 		{name:"Kaspersky (IOC)", url:"https://opentip.kaspersky.com/{data}/results?tab=lookup"},
+        {name:"MISP Search", url:"https://search.misp-community.org/?q={data}"},
     ],
     url: [
         {name:"VirusTotal", url:"https://www.virustotal.com/gui/url/{data}", needsHash:true, encode:true},
@@ -91,6 +93,7 @@ const sources = {
         {name:"Maltiverse", url:"https://maltiverse.com/intelligence/search;query={data}"},
         {name:"Google SafeBrowsing (Check)", url:"https://transparencyreport.google.com/safe-browsing/search?url={data}", encode:true},
         {name:"Google SafeBrowsing (Report)", url:"https://safebrowsing.google.com/safebrowsing/report_phish/?url={data}", encode:true},
+        {name:"MISP Search", url:"https://search.misp-community.org/?q={data}"},
 	],
     domain: [
         {name:"VirusTotal", url:"https://www.virustotal.com/gui/domain/{data}"},
@@ -130,6 +133,7 @@ const sources = {
         {name:"Maltiverse", url:"https://maltiverse.com/intelligence/search;query={data}"},
         {name:"Google SafeBrowsing (Check)", url:"https://transparencyreport.google.com/safe-browsing/search?url={data}", encode:true},
         {name:"Google SafeBrowsing (Report)", url:"https://safebrowsing.google.com/safebrowsing/report_phish/?url={data}", encode:true},
+        {name:"MISP Search", url:"https://search.misp-community.org/?q={data}"},
     ],
     hash: [
         {name:"VirusTotal", url:"https://www.virustotal.com/gui/file/{data}"},
@@ -150,6 +154,7 @@ const sources = {
         {name:"MalwareBazaar", url:"https://bazaar.abuse.ch/browse.php?search=sha256%3A{data}"},
         {name:"Spamhaus", url:"https://check.spamhaus.org/results/?query={data}"},
         {name:"Maltiverse", url:"https://maltiverse.com/intelligence/search;query={data}"},
+        {name:"MISP Search", url:"https://search.misp-community.org/?q={data}"},
     ],
     email: [
         {name:"Have I Been Pwned", url:"https://haveibeenpwned.com/unifiedsearch/{data}", usesDomain:false, encode:false},
@@ -162,6 +167,7 @@ const sources = {
         {name:"Nitter (Tweets)", url:"https://nitter.net/search?f=tweets&q={data}&since=&until=&min_faves="},
         {name:"LeakCheck", url:"https://leakcheck.io/api/public?check={data}"},
         {name:"Spamhaus", url:"https://check.spamhaus.org/results/?query={data}"},
+        {name:"MISP Search", url:"https://search.misp-community.org/?q={data}"},
     ],
     text: [
         {name:"Google", url:"https://www.google.com/search?q={data}"},
@@ -193,6 +199,7 @@ const sources = {
         {name:"Ransomware.Live", url:"https://www.ransomware.live/search?q={data}&scope=all"},
         {name:"No More Ransom", url:"https://www.nomoreransom.org/crypto-sheriff.php"},
 		{name:"OsintSearch", url:"https://osintsearch.org/?q={data}"},
+        {name:"MISP Search", url:"https://search.misp-community.org/?q={data}"},
     ]
 };
 
@@ -1330,10 +1337,13 @@ const NEWS_SOURCES = [
     { name: "BleepingComputer", rss: "https://www.bleepingcomputer.com/feed/" },
     { name: "HudsonRock",       rss: "https://www.infostealers.com/feed/" },
     { name: "Unit 42",          rss: "https://unit42.paloaltonetworks.com/feed/" },
-    { name: "Microsoft",        rss: "https://www.microsoft.com/en-us/security/blog/feed/" },
+    { name: "Microsoft",        rss: "https://www.microsoft.com/en-us/security/blog/topic/threat-intelligence/feed/" },
     { name: "CrowdStrike",      rss: "https://www.crowdstrike.com/blog/feed/" },
     { name: "Securelist",       rss: "https://securelist.com/feed/" },
     { name: "The DFIR Report",  rss: "https://thedfirreport.com/feed/" },
+    { name: "Google ThreatIntel", rss: "https://feeds.feedburner.com/threatintelligence/pvexyqv7v0v" },
+    { name: "Huntress",         rss: "https://www.huntress.com/blog/rss.xml" },
+    { name: "KrebsOnSecurity",  rss: "https://krebsonsecurity.com/feed/" },
 ];
 
 const RSS2JSON       = "https://api.rss2json.com/v1/api.json?rss_url=";
