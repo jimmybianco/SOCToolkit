@@ -175,6 +175,7 @@ const sources = {
         {name:"Valhalla (SIGMA/YARA Rules)", url:"https://valhalla.nextron-systems.com/info/search?keyword={data}", encode:false, base64:false},
         {name:"Ransomware.Live", url:"https://www.ransomware.live/search?q={data}&scope=all"},
         {name:"No More Ransom", url:"https://www.nomoreransom.org/crypto-sheriff.php"},
+		{name:"OsintSearch", url:"https://osintsearch.org/?q={data}"},
     ]
 };
 
@@ -733,7 +734,7 @@ function openCustomToolModal(type) {
         <label class="modal-label">Name
             <input id="ctName" class="modal-input" type="text" placeholder="My Tool" maxlength="40">
         </label>
-        <label class="modal-label">URL <span class="modal-hint">use <code id="ctDataPlaceholder" title="Click to copy">{data}</code> as IoC placeholder</span>
+        <label class="modal-label">URL <span class="modal-hint">optionally use <code id="ctDataPlaceholder" title="Click to copy">{data}</code> as IoC placeholder</span>
             <input id="ctUrl" class="modal-input" style="margin-top:8px" type="text" placeholder="https://example.com/search?q={data}">
         </label>
         <label class="modal-label">IoC type
@@ -773,7 +774,6 @@ function openCustomToolModal(type) {
 
         // Validation
         if (!name) { showModalError(errEl, "Name is required."); return; }
-        if (!url.includes("{data}")) { showModalError(errEl, "URL must contain {data}."); return; }
         if (!url.startsWith("https://") && !url.startsWith("http://")) { showModalError(errEl, "URL must start with http:// or https://"); return; }
 
         const existing = getCustomToolsForType(selType);
