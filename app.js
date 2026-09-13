@@ -1347,6 +1347,7 @@ const NEWS_SOURCES = [
     { name: "AnyRun",           rss: "https://any.run/cybersecurity-blog/category/malware-analysis/feed/" },
     { name: "Cisco Talos",      rss: "https://blog.talosintelligence.com/category/threat-spotlight/rss/" },
     { name: "Kaspersky Blog",   rss: "https://www.kaspersky.com/blog/category/threats/feed/" },
+    { name: "CISA",             rss: "https://www.cisa.gov/cybersecurity-advisories/all.xml" },
 ];
 
 const RSS2JSON       = "https://api.rss2json.com/v1/api.json?rss_url=";
