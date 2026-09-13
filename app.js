@@ -830,7 +830,8 @@ function showModalError(el, msg) {
 
 /* ================= SETTINGS MENU ================= */
 const CUSTOM_RSS_KEY = "soctk_custom_rss";
-const CONFIG_KEYS = [ORDER_KEY, OPEN_PREF_KEY, CUSTOM_TOOLS_KEY, "theme", CUSTOM_RSS_KEY];
+const ACCENT_KEY      = "accentColor";
+const CONFIG_KEYS = [ORDER_KEY, OPEN_PREF_KEY, CUSTOM_TOOLS_KEY, "theme", CUSTOM_RSS_KEY, ACCENT_KEY];
 
 document.getElementById("settingsToggle").onclick = (e) => {
     e.stopPropagation();
@@ -1056,12 +1057,13 @@ function applyTheme(theme) {
     document.body.classList.remove("hacker", "modern");
     document.body.classList.add(theme);
     themeBtn.textContent = (theme === "modern" ? "🌙" : "🔆") + " Toggle theme";
-    localStorage.setItem("theme", theme);
+    localStorage.setItem("theme", JSON.stringify(theme));
 }
 
 // FIX: use addEventListener to coexist with bootSequence listener
 window.addEventListener("load", () => {
-    const savedTheme = localStorage.getItem("theme") || "hacker";
+    let savedTheme = "hacker";
+    try { savedTheme = JSON.parse(localStorage.getItem("theme")) || "hacker"; } catch {}
     applyTheme(savedTheme);
 });
 
@@ -1069,6 +1071,61 @@ themeBtn.addEventListener("click", () => {
     const current = document.body.classList.contains("modern") ? "modern" : "hacker";
     applyTheme(current === "hacker" ? "modern" : "hacker");
     // Keep dropdown open so user can see other options
+});
+
+/* ================= ACCENT COLOR (hacker theme) ================= */
+const DEFAULT_ACCENT  = "#00ff00";
+const ACCENT_PALETTE  = ["#00ff00", "#4da3ff", "#ffb300", "#ff36e0", "#ff3b3b"];
+
+let _accentRGB = "0,255,0"; // cached "r,g,b" string, used by the particle canvas
+
+function hexToRgb(hex) {
+    const m = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+    if (!m) return { r: 0, g: 255, b: 0 };
+    return { r: parseInt(m[1], 16), g: parseInt(m[2], 16), b: parseInt(m[3], 16) };
+}
+
+// Only toggles which preset swatch looks "active" — the custom color input
+// keeps its own value and is never overwritten by picking a preset.
+function updateAccentUI(hex) {
+    document.querySelectorAll(".accent-swatch").forEach(el => {
+        el.classList.toggle("accent-swatch-active", el.dataset.color.toLowerCase() === hex.toLowerCase());
+    });
+}
+
+function applyAccentColor(hex, save = true) {
+    const { r, g, b } = hexToRgb(hex);
+    const root = document.documentElement.style;
+    root.setProperty("--accent-r", r);
+    root.setProperty("--accent-g", g);
+    root.setProperty("--accent-b", b);
+    _accentRGB = `${r},${g},${b}`;
+    if (save) localStorage.setItem(ACCENT_KEY, JSON.stringify(hex));
+    updateAccentUI(hex);
+}
+
+window.addEventListener("load", () => {
+    let saved = DEFAULT_ACCENT;
+    try { saved = JSON.parse(localStorage.getItem(ACCENT_KEY)) || DEFAULT_ACCENT; } catch {}
+    applyAccentColor(saved, false);
+    // Seed the custom picker once so it opens on the current color, without
+    // being re-synced every time a preset swatch is picked afterwards.
+    const picker = document.getElementById("accentColorPicker");
+    if (picker) picker.value = saved;
+});
+
+document.getElementById("accentPalette")?.addEventListener("click", e => {
+    const swatch = e.target.closest(".accent-swatch");
+    if (!swatch) return;
+    applyAccentColor(swatch.dataset.color);
+});
+
+document.getElementById("accentColorPicker")?.addEventListener("input", e => {
+    applyAccentColor(e.target.value);
+});
+
+document.getElementById("accentReset")?.addEventListener("click", () => {
+    applyAccentColor(DEFAULT_ACCENT);
 });
 
 /* ================= UTC CLOCK ================= */
@@ -1185,7 +1242,7 @@ class Particle {
     }
 
     draw() {
-        ctx.fillStyle = isModern() ? "rgba(60,60,80,0.4)" : "rgba(0,255,0,0.7)";
+        ctx.fillStyle = isModern() ? "rgba(60,60,80,0.4)" : `rgba(${_accentRGB},0.7)`;
         ctx.beginPath();
         ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
         ctx.fill();
@@ -1209,7 +1266,7 @@ function drawTrail() {
         ctx.lineTo(trail[i].x, trail[i].y);
         ctx.strokeStyle = modern
             ? `rgba(99,102,241,${alpha * 0.5})`
-            : `rgba(0,255,0,${alpha * 0.6})`;
+            : `rgba(${_accentRGB},${alpha * 0.6})`;
         ctx.lineWidth = width;
         ctx.lineCap   = "round";
         ctx.stroke();
@@ -1227,7 +1284,7 @@ function initParticles() {
 
 function connectParticles() {
     const modern = isModern();
-    const lineColor = modern ? "rgba(100,100,120,0.08)" : "rgba(0,255,0,0.1)";
+    const lineColor = modern ? "rgba(100,100,120,0.08)" : `rgba(${_accentRGB},0.1)`;
     for (let a = 0; a < particles.length; a++) {
         for (let b = a; b < particles.length; b++) {
             const dx = particles[a].x - particles[b].x;

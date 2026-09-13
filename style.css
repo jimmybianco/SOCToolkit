@@ -1,6 +1,15 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap');
 
+/* Accent color (hacker theme only) — overridden inline via JS per user selection */
+:root {
+    --accent-r: 0;
+    --accent-g: 255;
+    --accent-b: 0;
+    --accent-light: color-mix(in srgb, rgb(var(--accent-r), var(--accent-g), var(--accent-b)) 70%, white 30%);
+    --accent-dark: color-mix(in srgb, rgb(var(--accent-r), var(--accent-g), var(--accent-b)) 55%, black 45%);
+}
+
 /* ================= BOOT SCREEN ================= */
 #bootScreen {
     min-height: 100vh;
@@ -18,7 +27,7 @@
 /* ================= GENERAL ================= */
 body {
     background-color: #000;
-    color: #00ff00;
+    color: rgb(var(--accent-r), var(--accent-g), var(--accent-b));
     font-family: "Courier New", monospace;
     padding: 20px;
     text-align: center;
@@ -34,21 +43,21 @@ body {
     left: 20px;
     font-family: "Courier New", monospace;
     font-size: 12px;
-    color: #00ff00;
+    color: rgb(var(--accent-r), var(--accent-g), var(--accent-b));
     z-index: 1000;
 }
 
 /* ================= INPUTS & BUTTONS ================= */
 input, textarea, button {
     background-color: #111;
-    color: #00ff00;
-    border: 1px solid #00ff00;
+    color: rgb(var(--accent-r), var(--accent-g), var(--accent-b));
+    border: 1px solid rgb(var(--accent-r), var(--accent-g), var(--accent-b));
     border-radius: 5px;
     padding: 6px 10px;
-    box-shadow: 0 1px 2px rgba(16, 100, 10, 0.08);
+    box-shadow: 0 1px 2px rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.08);
     transition: all 0.2s ease;
     font-family: "Courier New", monospace;
-    border-color: #00ff00;
+    border-color: rgb(var(--accent-r), var(--accent-g), var(--accent-b));
     margin: 5px;
     cursor: pointer;
     box-sizing: border-box;
@@ -68,7 +77,7 @@ input:focus, textarea:focus,
 button:hover {
     outline: none;
     border: 3px solid #111;
-    box-shadow: 0 3px 5px rgba(16, 100, 10, 0.377);
+    box-shadow: 0 3px 5px rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.377);
 }
 
 /* ================= RESULTS ================= */
@@ -85,8 +94,8 @@ button:hover {
 .link-card {
     display: flex;
     flex-direction: column;
-    border: 1px solid #00ff00;
-    background-color: rgba(0, 255, 0, 0.05);
+    border: 1px solid rgb(var(--accent-r), var(--accent-g), var(--accent-b));
+    background-color: rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.05);
     padding: 8px 12px;
     border-radius: 5px;
     min-width: 220px;
@@ -95,16 +104,16 @@ button:hover {
     word-break: break-word;
     transition: all 0.2s ease-in-out;
     cursor: pointer;
-    color: #00ff00;
+    color: rgb(var(--accent-r), var(--accent-g), var(--accent-b));
     text-decoration: none;
 }
 .link-card:hover {
-    background-color: #00ff00;
+    background-color: rgb(var(--accent-r), var(--accent-g), var(--accent-b));
     color: #000;
-    background: linear-gradient(180deg, #00ff00, #00ff00);
+    background: linear-gradient(180deg, rgb(var(--accent-r), var(--accent-g), var(--accent-b)), rgb(var(--accent-r), var(--accent-g), var(--accent-b)));
     transform: translateY(-3px);
-    box-shadow: 0 10px 25px rgba(15, 70, 15, 0.25);
-    color: #021705;
+    box-shadow: 0 10px 25px rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.25);
+    color: var(--accent-dark);
 }
 .link-card .title {
     display: flex;
@@ -118,7 +127,7 @@ button:hover {
 }
 .link-card span.url {
     font-size: 0.8em;
-    color: #66ff66;
+    color: var(--accent-light);
     word-break: break-all;
     margin-top: 4px;
 }
@@ -187,7 +196,7 @@ button:hover {
     border-radius: 50%;
     border: 0px;
     background-color: #000;
-    color: #00ff00;
+    color: rgb(var(--accent-r), var(--accent-g), var(--accent-b));
     font-size: 18px;
     cursor: pointer;
     padding: 0;
@@ -208,7 +217,7 @@ body.modern #settingsToggle {
     right: 0;
     min-width: 180px;
     background: #0a0a0a;
-    border: 1px solid #00ff00;
+    border: 1px solid rgb(var(--accent-r), var(--accent-g), var(--accent-b));
     border-radius: 6px;
     overflow: hidden;
     display: flex;
@@ -228,9 +237,9 @@ body.modern #settingsDropdown {
     margin: 0;
     border: none;
     border-radius: 0;
-    border-bottom: 1px solid rgba(0,255,0,0.15);
+    border-bottom: 1px solid rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.15);
     background: transparent;
-    color: #00ff00;
+    color: rgb(var(--accent-r), var(--accent-g), var(--accent-b));
     text-align: left;
     padding: 10px 14px;
     font-size: 0.85em;
@@ -246,9 +255,9 @@ body.modern #settingsDropdown {
 
 #settingsDropdown button:hover,
 #settingsDropdown label:hover {
-    background: rgba(0,255,0,0.08);
+    background: rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.08);
     border: none;
-    border-bottom: 1px solid rgba(0,255,0,0.15);
+    border-bottom: 1px solid rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.15);
     box-shadow: none;
 }
 
@@ -268,6 +277,111 @@ body.modern #settingsDropdown label:hover {
 #importConfigInput {
     display: none;
 }
+
+/* ================= ACCENT COLOR PICKER ================= */
+.settings-accent-row {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    text-align: left;
+    gap: 8px;
+    padding: 10px 14px;
+    border-bottom: 1px solid rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.15);
+}
+
+.accent-picker-label {
+    font-size: 0.85em;
+    color: rgb(var(--accent-r), var(--accent-g), var(--accent-b));
+}
+
+.accent-palette {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+#settingsDropdown .accent-swatch {
+    width: 22px;
+    height: 22px;
+    min-width: 0;
+    padding: 0;
+    margin: 0;
+    border: 2px solid rgba(255,255,255,0.25);
+    border-radius: 50%;
+    display: inline-block;
+    cursor: pointer;
+    box-shadow: none;
+    flex-shrink: 0;
+    transition: transform 0.15s ease, border-color 0.15s ease;
+}
+
+#settingsDropdown .accent-swatch:hover {
+    transform: scale(1.15);
+}
+
+#settingsDropdown .accent-swatch.accent-swatch-active {
+    border-color: #fff;
+}
+
+.accent-custom-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.accent-custom-label {
+    font-size: 0.8em;
+    opacity: 0.7;
+}
+
+.accent-color-input {
+    width: 26px;
+    height: 26px;
+    min-width: 0;
+    padding: 0;
+    margin: 0;
+    border: 1px solid rgba(255,255,255,0.25);
+    border-radius: 50%;
+    background: #111;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+.accent-color-input::-webkit-color-swatch-wrapper {
+    padding: 0;
+    border-radius: 50%;
+}
+
+.accent-color-input::-webkit-color-swatch {
+    border: none;
+    border-radius: 50%;
+}
+
+.accent-color-input::-moz-color-swatch {
+    border: none;
+    border-radius: 50%;
+}
+
+#settingsDropdown .accent-reset-btn {
+    width: auto;
+    align-self: flex-start;
+    display: inline-block;
+    padding: 4px 10px;
+    margin: 0;
+    border: 1px solid rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.35);
+    border-radius: 4px;
+    font-size: 0.75em;
+    background: transparent;
+    color: rgb(var(--accent-r), var(--accent-g), var(--accent-b));
+    box-shadow: none;
+}
+
+#settingsDropdown .accent-reset-btn:hover {
+    background: rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.1);
+}
+
+body.modern .settings-accent-row { display: none; } /* accent color only applies to the hacker theme */
 
 /* ================= ASCII ART PRE ================= */
 #app pre {
@@ -306,12 +420,12 @@ body.modern #settingsDropdown label:hover {
     max-height: 0;
     overflow: hidden;
     background: rgba(0,0,0,0.97);
-    border-top: 1px solid rgba(0,255,0,0.2);
+    border-top: 1px solid rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.2);
     box-sizing: border-box;
     transition: max-height 0.3s ease;
     font-family: "Courier New", monospace;
     font-size: 0.9em;
-    color: #00ff00;
+    color: rgb(var(--accent-r), var(--accent-g), var(--accent-b));
 }
 
 #footerPanel.open {
@@ -341,7 +455,7 @@ body.modern #settingsDropdown label:hover {
     width: 100%;
     height: 36px;
     background: rgba(0,0,0,0.95);
-    border-top: 1px solid rgba(0,255,0,0.15);
+    border-top: 1px solid rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.15);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -350,7 +464,7 @@ body.modern #settingsDropdown label:hover {
     box-sizing: border-box;
     font-family: "Courier New", monospace;
     font-size: 0.85em;
-    color: #00ff00;
+    color: rgb(var(--accent-r), var(--accent-g), var(--accent-b));
 }
 
 .footer-copy { opacity: 0.8; white-space: nowrap; }
@@ -537,7 +651,7 @@ body.modern .footer-btn:hover {
 
 @media (max-width: 768px) {
     #utcClock {
-        color: #00ff00;            /* hacker theme color */
+        color: rgb(var(--accent-r), var(--accent-g), var(--accent-b));            /* hacker theme color */
         position: fixed;             /* stay on top */
         top: 10px;                   /* distance from top */
         left: 50%;                   /* center horizontally */
@@ -614,7 +728,7 @@ body.modern .footer-btn:hover {
 }
 
 .ioc-row:not(.ioc-header):hover {
-    background: rgba(0, 255, 0, 0.06);
+    background: rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.06);
 }
 
 .ioc-index {
@@ -640,9 +754,9 @@ body.modern .footer-btn:hover {
     padding: 1px 5px;
     border-radius: 4px;
     margin-left: 5px;
-    background: rgba(0, 255, 0, 0.15);
-    border: 1px solid rgba(0, 255, 0, 0.4);
-    color: #00ff00;
+    background: rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.15);
+    border: 1px solid rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.4);
+    color: rgb(var(--accent-r), var(--accent-g), var(--accent-b));
     vertical-align: middle;
     letter-spacing: 0.03em;
 }
@@ -679,7 +793,7 @@ body.modern .ioc-count-badge {
     opacity: 1;
     transform: translateY(-3px);
     background: transparent !important;
-    color: #00ff00 !important;
+    color: rgb(var(--accent-r), var(--accent-g), var(--accent-b)) !important;
 }
 
 body.modern .add-tool-card:hover {
@@ -729,7 +843,7 @@ body.modern .add-tool-card:hover {
 /* Modal box */
 .modal-box {
     background: #0a0a0a;
-    border: 1px solid #00ff00;
+    border: 1px solid rgb(var(--accent-r), var(--accent-g), var(--accent-b));
     border-radius: 8px;
     padding: 24px;
     width: 100%;
@@ -738,7 +852,7 @@ body.modern .add-tool-card:hover {
     flex-direction: column;
     gap: 14px;
     font-family: "Courier New", monospace;
-    color: #00ff00;
+    color: rgb(var(--accent-r), var(--accent-g), var(--accent-b));
 }
 
 body.modern .modal-box {
@@ -769,7 +883,7 @@ body.modern .modal-box {
 }
 
 .modal-hint code {
-    background: rgba(0,255,0,0.1);
+    background: rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.1);
     padding: 1px 4px;
     border-radius: 3px;
     cursor: pointer;
@@ -806,14 +920,14 @@ select.modal-input {
     box-sizing: border-box;
     font-size: 0.9em;
     background-color: #111;
-    color: #00ff00;
-    border: 1px solid #00ff00;
+    color: rgb(var(--accent-r), var(--accent-g), var(--accent-b));
+    border: 1px solid rgb(var(--accent-r), var(--accent-g), var(--accent-b));
     font-family: "Courier New", monospace;
 }
 
 select.modal-input option {
     background-color: #111;
-    color: #00ff00;
+    color: rgb(var(--accent-r), var(--accent-g), var(--accent-b));
 }
 
 .modal-error {
@@ -850,8 +964,8 @@ select.modal-input option {
 
 .link-card.sortable-ghost {
     opacity: 0.3;
-    border: 2px dashed #00ff00;
-    background: rgba(0, 255, 0, 0.08);
+    border: 2px dashed rgb(var(--accent-r), var(--accent-g), var(--accent-b));
+    background: rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.08);
 }
 
 body.modern .link-card.sortable-ghost {
@@ -861,7 +975,7 @@ body.modern .link-card.sortable-ghost {
 
 .link-card.sortable-chosen {
     cursor: grabbing !important;
-    box-shadow: 0 12px 32px rgba(0, 255, 0, 0.25);
+    box-shadow: 0 12px 32px rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.25);
     transform: scale(1.03);
 }
 
@@ -938,7 +1052,7 @@ body { padding-bottom: 196px; }
     width: 100%;
     height: 152px;
     background: rgba(0,0,0,0.96);
-    border-top: 1px solid rgba(0,255,0,0.25);
+    border-top: 1px solid rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.25);
     display: flex;
     align-items: stretch;
     overflow: hidden;
@@ -953,7 +1067,7 @@ body { padding-bottom: 196px; }
     align-items: center;
     justify-content: flex-start;
     gap: 6px;
-    border-right: 1px solid rgba(0,255,0,0.25);
+    border-right: 1px solid rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.25);
     flex-shrink: 0;
     width: 42px;
     padding: 6px 0;
@@ -961,10 +1075,10 @@ body { padding-bottom: 196px; }
 }
 
 .ticker-mode-btn {
-    background: rgba(0,255,0,0.08);
-    border: 1px solid rgba(0,255,0,0.4);
+    background: rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.08);
+    border: 1px solid rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.4);
     border-radius: 4px;
-    color: rgba(0,255,0,0.85);
+    color: rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.85);
     cursor: pointer;
     font-size: 0.85em;
     line-height: 1;
@@ -974,9 +1088,9 @@ body { padding-bottom: 196px; }
 }
 
 .ticker-mode-btn:hover {
-    background: rgba(0,255,0,0.18);
-    border-color: #00ff00;
-    color: #00ff00;
+    background: rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.18);
+    border-color: rgb(var(--accent-r), var(--accent-g), var(--accent-b));
+    color: rgb(var(--accent-r), var(--accent-g), var(--accent-b));
 }
 
 .ticker-label {
@@ -985,7 +1099,7 @@ body { padding-bottom: 196px; }
     font-size: 0.68em;
     letter-spacing: 0.1em;
     white-space: nowrap;
-    color: #00ff00;
+    color: rgb(var(--accent-r), var(--accent-g), var(--accent-b));
     flex: 1;
     display: flex;
     align-items: center;
@@ -995,14 +1109,14 @@ body { padding-bottom: 196px; }
     padding: 6px 0;
 }
 
-.ticker-label:hover { color: #66ff66; }
+.ticker-label:hover { color: var(--accent-light); }
 
 .ticker-expand-badge {
     font-size: 0.58em;
     font-weight: 700;
     letter-spacing: 0.05em;
     color: #000;
-    background: #00ff00;
+    background: rgb(var(--accent-r), var(--accent-g), var(--accent-b));
     border-radius: 4px;
     padding: 3px 6px;
     cursor: pointer;
@@ -1011,7 +1125,7 @@ body { padding-bottom: 196px; }
     transition: background 0.15s;
 }
 
-.ticker-expand-badge:hover { background: #66ff66; }
+.ticker-expand-badge:hover { background: var(--accent-light); }
 
 @keyframes ticker-hint-pulse {
     0%, 100% { opacity: 0.6; }
@@ -1054,7 +1168,7 @@ body { padding-bottom: 196px; }
     border-radius: 8px;
     overflow: hidden;
     background: #151515;
-    border: 1px solid rgba(0,255,0,0.12);
+    border: 1px solid rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.12);
     text-decoration: none;
     color: #ffffff;
     transition: border-color 0.15s, background 0.15s;
@@ -1062,7 +1176,7 @@ body { padding-bottom: 196px; }
 }
 
 #newsTicker .ticker-item:hover {
-    border-color: rgba(0,255,0,0.45);
+    border-color: rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.45);
     background: #1e1e1e;
 }
 
@@ -1085,7 +1199,7 @@ body { padding-bottom: 196px; }
 .ticker-card-source {
     font-size: 0.62em;
     letter-spacing: 0.06em;
-    color: #00ff00;
+    color: rgb(var(--accent-r), var(--accent-g), var(--accent-b));
     text-transform: uppercase;
     font-weight: 600;
     white-space: nowrap;
@@ -1127,7 +1241,7 @@ body.modern #newsTicker .ticker-item:hover {
 
 .ticker-ad-item {
     border-style: dashed;
-    border-color: rgba(0,255,0,0.25);
+    border-color: rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.25);
     cursor: default;
 }
 
@@ -1136,7 +1250,7 @@ body.modern #newsTicker .ticker-item:hover {
     font-size: 0.62em;
     letter-spacing: 0.06em;
     text-transform: uppercase;
-    color: rgba(0,255,0,0.5);
+    color: rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.5);
 }
 
 .ticker-ad-item ins.adsbygoogle {
@@ -1340,9 +1454,9 @@ body.modern .ticker-side           { border-right-color: rgba(255,255,255,0.1); 
 }
 
 .news-filter-btn.news-filter-active {
-    background: #00ff00;
+    background: rgb(var(--accent-r), var(--accent-g), var(--accent-b));
     color: #000;
-    border-color: #00ff00;
+    border-color: rgb(var(--accent-r), var(--accent-g), var(--accent-b));
     box-shadow: none;
 }
 
@@ -1352,10 +1466,10 @@ body.modern .ticker-side           { border-right-color: rgba(255,255,255,0.1); 
     gap: 14px;
     padding: 14px 16px;
     margin-bottom: 8px;
-    border: 1px solid rgba(0,255,0,0.2);
+    border: 1px solid rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.2);
     border-radius: 6px;
     text-decoration: none;
-    color: #00ff00;
+    color: rgb(var(--accent-r), var(--accent-g), var(--accent-b));
     background: #111;
     transition: background 0.15s ease, border-color 0.15s ease;
 }
@@ -1384,14 +1498,14 @@ body.modern .ticker-side           { border-right-color: rgba(255,255,255,0.1); 
 
 .news-card:hover {
     background: #1a1a1a;
-    border-color: rgba(0,255,0,0.5);
+    border-color: rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.5);
 }
 
 .news-source-badge {
     flex-shrink: 0;
     font-size: 0.68em;
     padding: 2px 7px;
-    border: 1px solid rgba(0,255,0,0.35);
+    border: 1px solid rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.35);
     border-radius: 3px;
     white-space: nowrap;
     min-width: 90px;
@@ -1439,9 +1553,9 @@ body.modern .ticker-side           { border-right-color: rgba(255,255,255,0.1); 
     padding: 10px 16px;
     margin-bottom: 8px;
     min-height: 100px;
-    border: 1px dashed rgba(0,255,0,0.2);
+    border: 1px dashed rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.2);
     border-radius: 6px;
-    background: rgba(0,255,0,0.03);
+    background: rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.03);
     box-sizing: border-box;
 }
 

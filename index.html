@@ -31,6 +31,21 @@
     <button id="settingsToggle" title="Settings">⚙️</button>
     <div id="settingsDropdown" style="display:none;">
         <button id="themeToggle">🔆 Toggle theme</button>
+        <div id="accentPicker" class="settings-accent-row">
+            <span class="accent-picker-label">🎨 Accent color</span>
+            <div id="accentPalette" class="accent-palette">
+                <button type="button" class="accent-swatch" data-color="#00ff00" style="background:#00ff00" title="Green (default)"></button>
+                <button type="button" class="accent-swatch" data-color="#4da3ff" style="background:#4da3ff" title="Blue"></button>
+                <button type="button" class="accent-swatch" data-color="#ffb300" style="background:#ffb300" title="Amber"></button>
+                <button type="button" class="accent-swatch" data-color="#ff36e0" style="background:#ff36e0" title="Magenta"></button>
+                <button type="button" class="accent-swatch" data-color="#ff3b3b" style="background:#ff3b3b" title="Red"></button>
+            </div>
+            <div class="accent-custom-row">
+                <span class="accent-custom-label">Custom:</span>
+                <input type="color" id="accentColorPicker" class="accent-color-input" title="Custom color" value="#00ff00">
+            </div>
+            <button type="button" id="accentReset" class="accent-reset-btn" title="Restore the default color">↺ Default color</button>
+        </div>
         <button id="exportConfig">⬇️ Export config</button>
         <label id="importConfigLabel">⬆️ Import config<input type="file" id="importConfigInput" accept=".json"></label>
         <button id="resetConfig">🔄 Restore defaults</button>
@@ -51,7 +66,7 @@
 ███████║╚██████╔╝╚██████╗        ██║   ╚██████╔╝╚██████╔╝███████╗██║  ██╗██║   ██║   
 ╚══════╝ ╚═════╝  ╚═════╝        ╚═╝    ╚═════╝  ╚═════╝ ╚══════╝╚═╝  ╚═╝╚═╝   ╚═╝   
 
-Coded by <a href="https://www.linkedin.com/in/jimmybianco" target="_blank" style="color:lab(31.55% 0.41 0.14); text-decoration:none;">Jimmy Bianco</a> - v202607
+Coded by <a href="https://www.linkedin.com/in/jimmybianco" target="_blank" style="color:lab(31.55% 0.41 0.14); text-decoration:none;">Jimmy Bianco</a>
 </pre>
 
 <div>
