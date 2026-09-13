@@ -10,6 +10,13 @@
     --accent-dark: color-mix(in srgb, rgb(var(--accent-r), var(--accent-g), var(--accent-b)) 55%, black 45%);
 }
 
+/* Default smooth fade when the accent color changes. Elements with their
+   own more specific transition rule (cards, hover states, etc.) keep it —
+   this only fills in the gaps for elements that had no transition at all. */
+* {
+    transition: color 1.2s ease-in-out, border-color 1.2s ease-in-out, background-color 1.2s ease-in-out, box-shadow 1.2s ease-in-out;
+}
+
 /* ================= BOOT SCREEN ================= */
 #bootScreen {
     min-height: 100vh;
@@ -57,11 +64,25 @@ input, textarea, button {
     box-shadow: 0 1px 2px rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.08);
     transition: all 0.2s ease;
     font-family: "Courier New", monospace;
+    font-size: 15px;
     border-color: rgb(var(--accent-r), var(--accent-g), var(--accent-b));
     margin: 5px;
     cursor: pointer;
     box-sizing: border-box;
-    
+
+}
+
+/* Displays scaled at 125%+ (e.g. a 1920x1080 monitor at 125% OS scaling)
+   already render everything larger, so skip the extra bump above. */
+@media (min-resolution: 1.2dppx) {
+    input, textarea, button {
+        font-size: 13.5px;
+    }
+
+    #normalizedInfo strong,
+    #normalizedInfo span {
+        font-size: 1em;
+    }
 }
 input, textarea { max-width: 90%; cursor: text; }
 textarea {
@@ -171,10 +192,11 @@ button:hover {
     cursor: pointer;
 }
 
-#normalizedInfo strong, 
+#normalizedInfo strong,
 #normalizedInfo span {
     display: inline-block;
     text-align: center;
+    font-size: 1.1em;
 }
 
 /* ================= SETTINGS MENU ================= */
@@ -361,6 +383,76 @@ body.modern #settingsDropdown label:hover {
 .accent-color-input::-moz-color-swatch {
     border: none;
     border-radius: 50%;
+}
+
+.accent-cycle-block {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    width: 100%;
+}
+
+.accent-cycle-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+}
+
+.accent-cycle-label {
+    font-size: 0.8em;
+    opacity: 0.85;
+    white-space: nowrap;
+}
+
+.accent-cycle-unit {
+    font-size: 0.75em;
+    opacity: 0.6;
+}
+
+.accent-cycle-slider {
+    width: 100%;
+    min-width: 0;
+    height: 4px;
+    margin: 0;
+    padding: 0;
+    background: rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.2);
+    border: none;
+    box-shadow: none;
+    cursor: pointer;
+    -webkit-appearance: none;
+    appearance: none;
+}
+
+.accent-cycle-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: rgb(var(--accent-r), var(--accent-g), var(--accent-b));
+    cursor: pointer;
+}
+
+.accent-cycle-slider::-moz-range-thumb {
+    width: 14px;
+    height: 14px;
+    border: none;
+    border-radius: 50%;
+    background: rgb(var(--accent-r), var(--accent-g), var(--accent-b));
+    cursor: pointer;
+}
+
+.accent-cycle-number {
+    width: 60px;
+    min-width: 0;
+    margin: 0;
+    padding: 2px 4px;
+    font-size: 0.75em;
+    text-align: right;
+    border: 1px solid rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.35);
+    background: #111;
+    color: rgb(var(--accent-r), var(--accent-g), var(--accent-b));
+    flex-shrink: 0;
 }
 
 #settingsDropdown .accent-reset-btn {

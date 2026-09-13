@@ -44,6 +44,14 @@
                 <span class="accent-custom-label">Custom:</span>
                 <input type="color" id="accentColorPicker" class="accent-color-input" title="Custom color" value="#00ff00">
             </div>
+            <div class="accent-cycle-block">
+                <div class="accent-cycle-row">
+                    <span class="accent-cycle-label" title="Seconds between automatic color changes. 0 = off">Auto-cycle:</span>
+                    <input type="number" id="accentCycleNumber" class="accent-cycle-number" min="0" step="1" value="0">
+                    <span class="accent-cycle-unit">s</span>
+                </div>
+                <input type="range" id="accentCycleSlider" class="accent-cycle-slider" min="0" max="3600" step="5" value="0">
+            </div>
             <button type="button" id="accentReset" class="accent-reset-btn" title="Restore the default color">↺ Default color</button>
         </div>
         <button id="exportConfig">⬇️ Export config</button>

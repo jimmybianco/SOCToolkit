@@ -838,7 +838,9 @@ function showModalError(el, msg) {
 /* ================= SETTINGS MENU ================= */
 const CUSTOM_RSS_KEY = "soctk_custom_rss";
 const ACCENT_KEY      = "accentColor";
-const CONFIG_KEYS = [ORDER_KEY, OPEN_PREF_KEY, CUSTOM_TOOLS_KEY, "theme", CUSTOM_RSS_KEY, ACCENT_KEY];
+const ACCENT_CUSTOM_KEY         = "accentCustomColor";
+const ACCENT_CYCLE_INTERVAL_KEY = "accentAutoCycleInterval";
+const CONFIG_KEYS = [ORDER_KEY, OPEN_PREF_KEY, CUSTOM_TOOLS_KEY, "theme", CUSTOM_RSS_KEY, ACCENT_KEY, ACCENT_CUSTOM_KEY, ACCENT_CYCLE_INTERVAL_KEY];
 
 document.getElementById("settingsToggle").onclick = (e) => {
     e.stopPropagation();
@@ -1111,14 +1113,19 @@ function applyAccentColor(hex, save = true) {
     updateAccentUI(hex);
 }
 
+function readAccentCustom() {
+    try { return JSON.parse(localStorage.getItem(ACCENT_CUSTOM_KEY)) || DEFAULT_ACCENT; } catch { return DEFAULT_ACCENT; }
+}
+
 window.addEventListener("load", () => {
     let saved = DEFAULT_ACCENT;
     try { saved = JSON.parse(localStorage.getItem(ACCENT_KEY)) || DEFAULT_ACCENT; } catch {}
     applyAccentColor(saved, false);
-    // Seed the custom picker once so it opens on the current color, without
-    // being re-synced every time a preset swatch is picked afterwards.
+    // Seed the custom picker from the last custom color the user picked —
+    // independent of whatever preset is currently active — so it isn't
+    // re-synced every time a preset swatch is picked afterwards.
     const picker = document.getElementById("accentColorPicker");
-    if (picker) picker.value = saved;
+    if (picker) picker.value = readAccentCustom();
 });
 
 document.getElementById("accentPalette")?.addEventListener("click", e => {
@@ -1129,10 +1136,77 @@ document.getElementById("accentPalette")?.addEventListener("click", e => {
 
 document.getElementById("accentColorPicker")?.addEventListener("input", e => {
     applyAccentColor(e.target.value);
+    localStorage.setItem(ACCENT_CUSTOM_KEY, JSON.stringify(e.target.value));
 });
 
 document.getElementById("accentReset")?.addEventListener("click", () => {
     applyAccentColor(DEFAULT_ACCENT);
+});
+
+/* ================= ACCENT AUTO-CYCLE ================= */
+const CYCLE_SLIDER_MAX = 3600; // seconds (1 hour) — the slider's own range; the number field allows more
+
+let _accentCycleTimer = null;
+let _accentCycleIndex = 0;
+
+function stopAccentCycle() {
+    if (_accentCycleTimer) { clearInterval(_accentCycleTimer); _accentCycleTimer = null; }
+}
+
+// Palette presets + the user's saved custom color (deduped), recomputed on
+// every tick so a custom color picked mid-cycle is picked up immediately.
+function getCycleColors() {
+    const custom = readAccentCustom();
+    const list   = [...ACCENT_PALETTE];
+    if (!list.some(c => c.toLowerCase() === custom.toLowerCase())) list.push(custom);
+    return list;
+}
+
+function startAccentCycle(seconds) {
+    stopAccentCycle();
+    _accentCycleTimer = setInterval(() => {
+        const colors = getCycleColors();
+        _accentCycleIndex = (_accentCycleIndex + 1) % colors.length;
+        applyAccentColor(colors[_accentCycleIndex]);
+    }, seconds * 1000);
+}
+
+function readAccentCycleInterval() {
+    try {
+        const v = JSON.parse(localStorage.getItem(ACCENT_CYCLE_INTERVAL_KEY));
+        return typeof v === "number" && v >= 0 ? v : 0;
+    } catch { return 0; }
+}
+
+// Single source of truth: 0 = off, >0 = the cycle interval in seconds.
+function setAccentCycleInterval(seconds) {
+    seconds = Math.max(0, Math.round(seconds) || 0);
+    localStorage.setItem(ACCENT_CYCLE_INTERVAL_KEY, JSON.stringify(seconds));
+
+    const slider = document.getElementById("accentCycleSlider");
+    const number = document.getElementById("accentCycleNumber");
+    if (slider) slider.value = Math.min(seconds, CYCLE_SLIDER_MAX);
+    if (number) number.value = seconds;
+
+    if (seconds > 0) startAccentCycle(seconds);
+    else stopAccentCycle();
+}
+
+window.addEventListener("load", () => {
+    const interval = readAccentCycleInterval();
+    const slider   = document.getElementById("accentCycleSlider");
+    const number   = document.getElementById("accentCycleNumber");
+    if (slider) slider.value = Math.min(interval, CYCLE_SLIDER_MAX);
+    if (number) number.value = interval;
+    if (interval > 0) startAccentCycle(interval);
+});
+
+document.getElementById("accentCycleSlider")?.addEventListener("input", e => {
+    setAccentCycleInterval(parseInt(e.target.value, 10));
+});
+
+document.getElementById("accentCycleNumber")?.addEventListener("input", e => {
+    setAccentCycleInterval(parseInt(e.target.value, 10));
 });
 
 /* ================= UTC CLOCK ================= */
