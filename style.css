@@ -10,13 +10,6 @@
     --accent-dark: color-mix(in srgb, rgb(var(--accent-r), var(--accent-g), var(--accent-b)) 55%, black 45%);
 }
 
-/* Default smooth fade when the accent color changes. Elements with their
-   own more specific transition rule (cards, hover states, etc.) keep it —
-   this only fills in the gaps for elements that had no transition at all. */
-* {
-    transition: color 1.2s ease-in-out, border-color 1.2s ease-in-out, background-color 1.2s ease-in-out, box-shadow 1.2s ease-in-out;
-}
-
 /* ================= BOOT SCREEN ================= */
 #bootScreen {
     min-height: 100vh;
