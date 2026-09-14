@@ -377,6 +377,31 @@ function toggleUnlocked(type, name) {
     return prefs[key];
 }
 
+/* ================= HIDDEN TOOLS ================= */
+const HIDDEN_KEY      = "soc_hidden_sources";
+const NEWS_HIDDEN_KEY = "soctk_hidden_news_sources";
+
+function loadHiddenPrefs() {
+    try { return JSON.parse(localStorage.getItem(HIDDEN_KEY) || "{}"); } catch { return {}; }
+}
+
+function saveHiddenPrefs(prefs) {
+    localStorage.setItem(HIDDEN_KEY, JSON.stringify(prefs));
+}
+
+function isHidden(type, name) {
+    const prefs = loadHiddenPrefs();
+    return prefs[`${type}|${name}`] === true;
+}
+
+function setHidden(type, name, hidden) {
+    const prefs = loadHiddenPrefs();
+    const key = `${type}|${name}`;
+    if (hidden) prefs[key] = true;
+    else delete prefs[key];
+    saveHiddenPrefs(prefs);
+}
+
 /* ================= CARD ORDER PERSISTENCE ================= */
 const ORDER_KEY = "soc_card_order";
 
@@ -550,6 +575,7 @@ async function renderLinks(raw) {
 
     // ── Render one card per service ──
     for (const src of getOrderedSources(type)) {
+        if (isHidden(type, src.name)) continue;
 
         // Build all links for this source (one per IoC), validate each
         const links = [];
@@ -736,7 +762,10 @@ function deleteCustomTool(type, name) {
     saveCustomTools(all);
 }
 
-function openCustomToolModal(type) {
+// editSource: { name, url, types: [...] } of an existing custom tool to
+// edit in place — its old entries are removed from `types` before the
+// (possibly renamed/retyped) new version is saved.
+function openCustomToolModal(type, onSaved, editSource) {
     // Capture current input value at the moment of opening
     const currentRaw = inputData.value.trim();
 
@@ -744,6 +773,7 @@ function openCustomToolModal(type) {
     document.getElementById("customToolModal")?.remove();
 
     const types = ["ipv4","ipv6","domain","url","hash","email","text"];
+    const preselectTypes = editSource ? editSource.types : (type === "all" ? types : [type]);
 
     const overlay = document.createElement("div");
     overlay.id        = "customToolModal";
@@ -754,18 +784,22 @@ function openCustomToolModal(type) {
     box.className = "modal-box";
 
     box.innerHTML = `
-        <h3 class="modal-title">Add custom tool</h3>
+        <h3 class="modal-title">${editSource ? "Edit custom tool" : "Add custom tool"}</h3>
         <label class="modal-label">Name
             <input id="ctName" class="modal-input" type="text" placeholder="My Tool" maxlength="40">
         </label>
         <label class="modal-label">URL <span class="modal-hint">optionally use <code id="ctDataPlaceholder" title="Click to copy">{data}</code> as IoC placeholder</span>
             <input id="ctUrl" class="modal-input" style="margin-top:8px" type="text" placeholder="https://example.com/search?q={data}">
         </label>
-        <label class="modal-label">IoC type
-            <select id="ctType" class="modal-input">
-                <option value="all">All types</option>
-                ${types.map(t => `<option value="${t}" ${t === type ? "selected" : ""}>${t}</option>`).join("")}
-            </select>
+        <label class="modal-label">IoC type(s)
+            <div class="modal-checkbox-group" id="ctTypeGroup">
+                ${types.map(t => `
+                    <label class="modal-checkbox-item">
+                        <input type="checkbox" value="${t}" ${preselectTypes.includes(t) ? "checked" : ""}>
+                        ${t}
+                    </label>
+                `).join("")}
+            </div>
         </label>
         <div id="ctError" class="modal-error" style="display:none"></div>
         <div class="modal-actions">
@@ -776,6 +810,11 @@ function openCustomToolModal(type) {
 
     overlay.appendChild(box);
     document.body.appendChild(overlay);
+
+    if (editSource) {
+        document.getElementById("ctName").value = editSource.name;
+        document.getElementById("ctUrl").value  = editSource.url;
+    }
 
     // {data} click to copy
     const dataTag = document.getElementById("ctDataPlaceholder");
@@ -791,30 +830,28 @@ function openCustomToolModal(type) {
 
     document.getElementById("ctCancel").onclick = closeModal;
     document.getElementById("ctSave").onclick   = () => {
-        const name    = document.getElementById("ctName").value.trim();
-        const url     = document.getElementById("ctUrl").value.trim();
-        const selType = document.getElementById("ctType").value;
-        const errEl   = document.getElementById("ctError");
+        const name     = document.getElementById("ctName").value.trim();
+        const url      = document.getElementById("ctUrl").value.trim();
+        const selTypes = [...document.querySelectorAll("#ctTypeGroup input:checked")].map(cb => cb.value);
+        const errEl    = document.getElementById("ctError");
 
         // Validation
         if (!name) { showModalError(errEl, "Name is required."); return; }
         if (!url.startsWith("https://") && !url.startsWith("http://")) { showModalError(errEl, "URL must start with http:// or https://"); return; }
+        if (!selTypes.length) { showModalError(errEl, "Select at least one IoC type."); return; }
 
-        const existing = getCustomToolsForType(selType);
-        if (selType !== "all" && existing.some(t => t.name.toLowerCase() === name.toLowerCase())) {
-            showModalError(errEl, `A tool named "${name}" already exists for ${selType}.`); return;
+        if (editSource) editSource.types.forEach(t => deleteCustomTool(t, editSource.name));
+
+        const dupeIn = selTypes.filter(t => getCustomToolsForType(t).some(e => e.name.toLowerCase() === name.toLowerCase()));
+        if (dupeIn.length) {
+            showModalError(errEl, `A tool named "${name}" already exists for ${dupeIn.join(", ")}.`); return;
         }
 
-        const typesToSave = selType === "all" ? types : [selType];
-        typesToSave.forEach(t => {
-            const ex = getCustomToolsForType(t);
-            if (!ex.some(e => e.name.toLowerCase() === name.toLowerCase())) {
-                addCustomTool(t, { name, url });
-            }
-        });
+        selTypes.forEach(t => addCustomTool(t, { name, url }));
         closeModal();
         renderLinks(currentRaw);
-        showToast(`"${name}" added!`);
+        showToast(editSource ? `"${name}" updated!` : `"${name}" added!`);
+        if (typeof onSaved === "function") onSaved();
     };
 
     // Enter to save, Escape to close
@@ -832,12 +869,147 @@ function showModalError(el, msg) {
     el.style.display = "block";
 }
 
+/* ================= MANAGE TOOLS (hide/show) ================= */
+const TOOL_TYPES       = ["ipv4", "ipv6", "url", "domain", "hash", "email", "text"];
+const TOOL_TYPE_LABELS = { ipv4: "IPv4", ipv6: "IPv6", url: "URL", domain: "Domain", hash: "Hash", email: "Email", text: "Text" };
+
+// One row per unique tool name, with the set of IoC types it appears in —
+// a tool can exist under the same name in several categories (e.g.
+// VirusTotal in ipv4/url/domain/hash), each with its own hide toggle.
+function buildToolMatrix() {
+    const matrix = {};
+    TOOL_TYPES.forEach(type => {
+        getOrderedSources(type).forEach(src => {
+            if (!matrix[src.name]) matrix[src.name] = { isCustom: false, types: new Set(), url: src.url };
+            matrix[src.name].types.add(type);
+            if (src.custom) matrix[src.name].isCustom = true;
+        });
+    });
+    return matrix;
+}
+
+function openManageToolsModal() {
+    document.getElementById("manageToolsModal")?.remove();
+
+    const overlay = document.createElement("div");
+    overlay.id        = "manageToolsModal";
+    overlay.className = "modal-overlay";
+    overlay.onclick   = e => { if (e.target === overlay) close(); };
+
+    const box = document.createElement("div");
+    box.className = "modal-box modal-box-wide";
+    box.innerHTML = `
+        <h3 class="modal-title">Manage tools</h3>
+        <p class="modal-hint">Untick a box to hide that tool for that IoC type. "*" marks a custom tool.</p>
+        <div class="manage-tools-scroll">
+            <table class="manage-tools-table">
+                <thead>
+                    <tr>
+                        <th>Tool</th>
+                        ${TOOL_TYPES.map(t => `<th>${TOOL_TYPE_LABELS[t]}</th>`).join("")}
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="manageToolsBody"></tbody>
+            </table>
+        </div>
+        <div class="modal-actions">
+            <button type="button" class="modal-btn" id="manageToolsAddBtn">+ Add custom tool</button>
+            <button class="modal-btn" id="manageToolsClose">Close</button>
+        </div>
+    `;
+    overlay.appendChild(box);
+    document.body.appendChild(overlay);
+
+    const renderRows = () => {
+        const tbody  = document.getElementById("manageToolsBody");
+        const matrix = buildToolMatrix();
+        const names  = Object.keys(matrix).sort((a, b) => a.localeCompare(b));
+        const native = names.filter(n => !matrix[n].isCustom);
+        const custom = names.filter(n => matrix[n].isCustom);
+
+        tbody.innerHTML = "";
+
+        const addRow = name => {
+            const row = document.createElement("tr");
+
+            const nameCell = document.createElement("td");
+            nameCell.className   = "manage-tools-name";
+            nameCell.textContent = name + (matrix[name].isCustom ? " *" : "");
+            row.appendChild(nameCell);
+
+            TOOL_TYPES.forEach(type => {
+                const cell = document.createElement("td");
+                cell.className = "manage-tools-cell";
+                if (matrix[name].types.has(type)) {
+                    const cb = document.createElement("input");
+                    cb.type     = "checkbox";
+                    cb.checked  = !isHidden(type, name);
+                    cb.title    = `Show in ${TOOL_TYPE_LABELS[type]}`;
+                    cb.onchange = () => setHidden(type, name, !cb.checked);
+                    cell.appendChild(cb);
+                }
+                row.appendChild(cell);
+            });
+
+            const actionsCell = document.createElement("td");
+            actionsCell.className = "manage-tools-cell";
+            if (matrix[name].isCustom) {
+                const typesArr = [...matrix[name].types];
+
+                const editBtn = document.createElement("button");
+                editBtn.type        = "button";
+                editBtn.className   = "manage-tools-action-btn";
+                editBtn.title       = "Edit this tool";
+                editBtn.textContent = "✏️";
+                editBtn.onclick     = () => openCustomToolModal("all", renderRows, { name, url: matrix[name].url, types: typesArr });
+                actionsCell.appendChild(editBtn);
+
+                const delBtn = document.createElement("button");
+                delBtn.type        = "button";
+                delBtn.className   = "manage-tools-action-btn";
+                delBtn.title       = "Delete this tool";
+                delBtn.textContent = "🗑️";
+                delBtn.onclick     = () => { typesArr.forEach(t => deleteCustomTool(t, name)); renderRows(); };
+                actionsCell.appendChild(delBtn);
+            }
+            row.appendChild(actionsCell);
+
+            tbody.appendChild(row);
+        };
+
+        native.forEach(addRow);
+
+        if (custom.length) {
+            const sep = document.createElement("tr");
+            sep.innerHTML = `<td colspan="${TOOL_TYPES.length + 2}" class="manage-tools-separator">Custom tools</td>`;
+            tbody.appendChild(sep);
+            custom.forEach(addRow);
+        }
+    };
+
+    renderRows();
+
+    document.getElementById("manageToolsAddBtn").onclick = () => openCustomToolModal("all", renderRows);
+
+    const close = () => { overlay.remove(); document.removeEventListener("keydown", onKeyDown); };
+    document.getElementById("manageToolsClose").onclick = close;
+
+    const onKeyDown = e => { if (e.key === "Escape") close(); };
+    document.addEventListener("keydown", onKeyDown);
+}
+
+document.getElementById("manageToolsBtn")?.addEventListener("click", () => {
+    document.getElementById("settingsDropdown").style.display = "none";
+    openManageToolsModal();
+});
+
 /* ================= SETTINGS MENU ================= */
 const CUSTOM_RSS_KEY = "soctk_custom_rss";
 const ACCENT_KEY      = "accentColor";
 const ACCENT_CUSTOM_KEY         = "accentCustomColor";
 const ACCENT_CYCLE_INTERVAL_KEY = "accentAutoCycleInterval";
-const CONFIG_KEYS = [ORDER_KEY, OPEN_PREF_KEY, CUSTOM_TOOLS_KEY, "theme", CUSTOM_RSS_KEY, ACCENT_KEY, ACCENT_CUSTOM_KEY, ACCENT_CYCLE_INTERVAL_KEY];
+const CONFIG_KEYS = [ORDER_KEY, OPEN_PREF_KEY, CUSTOM_TOOLS_KEY, "theme", CUSTOM_RSS_KEY, ACCENT_KEY, ACCENT_CUSTOM_KEY, ACCENT_CYCLE_INTERVAL_KEY, HIDDEN_KEY, NEWS_HIDDEN_KEY];
 
 document.getElementById("settingsToggle").onclick = (e) => {
     e.stopPropagation();
@@ -959,6 +1131,7 @@ openUnlocked.onclick = async () => {
     let opened = 0;
     for (const src of getOrderedSources(t)) {
         if (prefs[`${t}|${src.name}`] !== true) continue;
+        if (isHidden(t, src.name)) continue;
 
         for (const ioc of iocs) {
             const p       = await prepareData(ioc, t, src);
@@ -1474,8 +1647,26 @@ function saveCustomSources() {
     try { localStorage.setItem(CUSTOM_RSS_KEY, JSON.stringify(_customSources)); } catch {}
 }
 
+function loadHiddenNewsSources() {
+    try { return JSON.parse(localStorage.getItem(NEWS_HIDDEN_KEY) || "[]"); } catch { return []; }
+}
+
+function isNewsSourceHidden(name) {
+    return loadHiddenNewsSources().includes(name);
+}
+
+function setNewsSourceHidden(name, hidden) {
+    let arr = loadHiddenNewsSources();
+    arr = hidden ? [...new Set([...arr, name])] : arr.filter(n => n !== name);
+    localStorage.setItem(NEWS_HIDDEN_KEY, JSON.stringify(arr));
+}
+
+// All known sources, hidden ones excluded — used for fetching/rendering.
+// The manage panel lists the unfiltered set so hidden sources can be
+// re-shown.
 function getActiveSources() {
-    return [...NEWS_SOURCES, ..._customSources];
+    const hidden = loadHiddenNewsSources();
+    return [...NEWS_SOURCES, ..._customSources].filter(s => !hidden.includes(s.name));
 }
 
 function _lsKey(name) {
@@ -1772,7 +1963,9 @@ function removeCustomSource(name) {
     loadNews();
 }
 
-function openAddRssModal() {
+// editSource: { name, rss } of an existing custom source to edit in place,
+// instead of adding a new one.
+function openAddRssModal(onSaved, editSource) {
     document.getElementById("addRssModal")?.remove();
 
     const overlay = document.createElement("div");
@@ -1783,7 +1976,7 @@ function openAddRssModal() {
     const box = document.createElement("div");
     box.className = "modal-box";
     box.innerHTML = `
-        <h3 class="modal-title">Add RSS Feed</h3>
+        <h3 class="modal-title">${editSource ? "Edit RSS Feed" : "Add RSS Feed"}</h3>
         <label class="modal-label">Name
             <input id="rssName" class="modal-input" type="text" placeholder="e.g. My Blog" maxlength="40">
         </label>
@@ -1791,11 +1984,16 @@ function openAddRssModal() {
             <input id="rssUrl" class="modal-input" type="url" placeholder="https://example.com/feed.xml">
         </label>
         <div class="modal-actions">
-            <button class="modal-btn modal-btn-primary" id="rssConfirm">Add Feed</button>
+            <button class="modal-btn modal-btn-primary" id="rssConfirm">${editSource ? "Save" : "Add Feed"}</button>
             <button class="modal-btn" id="rssCancel">Cancel</button>
         </div>`;
     overlay.appendChild(box);
     document.body.appendChild(overlay);
+
+    if (editSource) {
+        document.getElementById("rssName").value = editSource.name;
+        document.getElementById("rssUrl").value  = editSource.rss;
+    }
 
     const confirmRss = () => {
         const name = document.getElementById("rssName").value.trim();
@@ -1803,15 +2001,28 @@ function openAddRssModal() {
 
         if (!name) { showToast("Enter a name for the feed."); return; }
         if (!rss || !/^https?:\/\//i.test(rss)) { showToast("Enter a valid RSS URL."); return; }
-        if (getActiveSources().some(s => s.name === name)) {
+
+        const others = [...NEWS_SOURCES, ..._customSources].filter(s => !editSource || s.name !== editSource.name);
+        if (others.some(s => s.name === name)) {
             showToast("A source with that name already exists."); return;
         }
 
-        _customSources.push({ name, rss });
+        if (editSource) {
+            const idx = _customSources.findIndex(s => s.name === editSource.name);
+            if (idx !== -1) _customSources[idx] = { name, rss };
+            // Carry over the hidden/enabled state if the name changed
+            if (name !== editSource.name && isNewsSourceHidden(editSource.name)) {
+                setNewsSourceHidden(editSource.name, false);
+                setNewsSourceHidden(name, true);
+            }
+        } else {
+            _customSources.push({ name, rss });
+        }
         saveCustomSources();
         overlay.remove();
-        showToast(`Added "${name}" — loading…`);
+        showToast(editSource ? `"${name}" updated.` : `Added "${name}" — loading…`);
         loadNews();
+        if (typeof onSaved === "function") onSaved();
     };
 
     document.getElementById("rssCancel").onclick  = () => overlay.remove();
@@ -1821,6 +2032,110 @@ function openAddRssModal() {
         if (e.key === "Escape") overlay.remove();
     });
 }
+
+function openManageRssModal() {
+    document.getElementById("manageRssModal")?.remove();
+
+    const overlay = document.createElement("div");
+    overlay.id        = "manageRssModal";
+    overlay.className = "modal-overlay";
+    overlay.onclick   = e => { if (e.target === overlay) close(); };
+
+    const box = document.createElement("div");
+    box.className = "modal-box modal-box-wide";
+    box.innerHTML = `
+        <h3 class="modal-title">Manage RSS sources</h3>
+        <p class="modal-hint">Untick a box to disable that source — it won't be queried at all. "*" marks a custom feed.</p>
+        <div class="manage-tools-scroll">
+            <table class="manage-tools-table">
+                <thead><tr><th>Source</th><th>Enabled</th><th>Actions</th></tr></thead>
+                <tbody id="manageRssBody"></tbody>
+            </table>
+        </div>
+        <div class="modal-actions">
+            <button type="button" class="modal-btn" id="manageRssAddBtn">+ Add RSS feed</button>
+            <button class="modal-btn" id="manageRssClose">Close</button>
+        </div>
+    `;
+    overlay.appendChild(box);
+    document.body.appendChild(overlay);
+
+    const renderRows = () => {
+        const tbody = document.getElementById("manageRssBody");
+
+        tbody.innerHTML = "";
+
+        const addRow = src => {
+            const isCustom = _customSources.some(s => s.name === src.name);
+            const row      = document.createElement("tr");
+
+            const nameCell = document.createElement("td");
+            nameCell.className   = "manage-tools-name";
+            nameCell.textContent = src.name + (isCustom ? " *" : "");
+            row.appendChild(nameCell);
+
+            const enabledCell = document.createElement("td");
+            enabledCell.className = "manage-tools-cell";
+            const cb = document.createElement("input");
+            cb.type     = "checkbox";
+            cb.checked  = !isNewsSourceHidden(src.name);
+            cb.title    = "Enable this source";
+            cb.onchange = () => {
+                setNewsSourceHidden(src.name, !cb.checked);
+                loadNews();
+            };
+            enabledCell.appendChild(cb);
+            row.appendChild(enabledCell);
+
+            const actionsCell = document.createElement("td");
+            actionsCell.className = "manage-tools-cell";
+            if (isCustom) {
+                const editBtn = document.createElement("button");
+                editBtn.type        = "button";
+                editBtn.className   = "manage-tools-action-btn";
+                editBtn.title       = "Edit this feed";
+                editBtn.textContent = "✏️";
+                editBtn.onclick     = () => openAddRssModal(renderRows, { name: src.name, rss: src.rss });
+                actionsCell.appendChild(editBtn);
+
+                const delBtn = document.createElement("button");
+                delBtn.type        = "button";
+                delBtn.className   = "manage-tools-action-btn";
+                delBtn.title       = "Delete this feed";
+                delBtn.textContent = "🗑️";
+                delBtn.onclick     = () => { removeCustomSource(src.name); renderRows(); };
+                actionsCell.appendChild(delBtn);
+            }
+            row.appendChild(actionsCell);
+
+            tbody.appendChild(row);
+        };
+
+        NEWS_SOURCES.forEach(addRow);
+
+        if (_customSources.length) {
+            const sep = document.createElement("tr");
+            sep.innerHTML = `<td colspan="3" class="manage-tools-separator">Custom feeds</td>`;
+            tbody.appendChild(sep);
+            _customSources.forEach(addRow);
+        }
+    };
+
+    renderRows();
+
+    document.getElementById("manageRssAddBtn").onclick = () => openAddRssModal(renderRows);
+
+    const close = () => { overlay.remove(); document.removeEventListener("keydown", onKeyDown); };
+    document.getElementById("manageRssClose").onclick = close;
+
+    const onKeyDown = e => { if (e.key === "Escape") close(); };
+    document.addEventListener("keydown", onKeyDown);
+}
+
+document.getElementById("manageRssBtn")?.addEventListener("click", () => {
+    document.getElementById("settingsDropdown").style.display = "none";
+    openManageRssModal();
+});
 
 function updateTicker(items) {
     const ticker  = document.getElementById("newsTicker");

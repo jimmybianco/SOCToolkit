@@ -998,6 +998,96 @@ body.modern .add-tool-card:hover {
     color: rgb(var(--accent-r), var(--accent-g), var(--accent-b));
 }
 
+.modal-box-wide {
+    max-width: 900px;
+}
+
+.manage-tools-scroll {
+    max-height: 50vh;
+    overflow: auto;
+    border: 1px solid rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.25);
+    border-radius: 6px;
+}
+
+.manage-tools-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85em;
+    white-space: nowrap;
+}
+
+.manage-tools-table th,
+.manage-tools-table td {
+    padding: 6px 10px;
+    text-align: center;
+    border-bottom: 1px solid rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.15);
+}
+
+.manage-tools-table thead th {
+    position: sticky;
+    top: 0;
+    background: #0a0a0a;
+    opacity: 0.75;
+    font-weight: normal;
+}
+
+.manage-tools-name {
+    text-align: left !important;
+    white-space: nowrap;
+}
+
+.manage-tools-cell input[type="checkbox"] {
+    width: 15px;
+    height: 15px;
+    margin: 0;
+    cursor: pointer;
+}
+
+.manage-tools-action-btn {
+    width: auto;
+    min-width: 0;
+    margin: 0 2px;
+    padding: 2px 5px;
+    font-size: 0.95em;
+    line-height: 1;
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    opacity: 0.75;
+    cursor: pointer;
+}
+
+.manage-tools-action-btn:hover {
+    opacity: 1;
+    background: rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.1);
+}
+
+.manage-tools-separator {
+    text-align: center !important;
+    font-size: 0.75em;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    opacity: 0.5;
+    background: rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.05);
+}
+
+body.modern .manage-tools-scroll {
+    border-color: rgba(15,23,42,0.15);
+}
+
+body.modern .manage-tools-table th,
+body.modern .manage-tools-table td {
+    border-bottom-color: rgba(15,23,42,0.08);
+}
+
+body.modern .manage-tools-separator {
+    background: rgba(15,23,42,0.03);
+}
+
+body.modern .manage-tools-table thead th {
+    background: #ffffff;
+}
+
 body.modern .modal-box {
     background: #ffffff;
     border: 1px solid #d1d5db;
@@ -1031,6 +1121,30 @@ body.modern .modal-box {
     border-radius: 3px;
     cursor: pointer;
     transition: opacity 0.15s ease;
+}
+
+.modal-checkbox-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 14px;
+    margin-top: 6px;
+}
+
+.modal-checkbox-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 0.95em;
+    text-transform: none;
+    opacity: 1;
+    cursor: pointer;
+}
+
+.modal-checkbox-item input[type="checkbox"] {
+    width: 14px;
+    height: 14px;
+    margin: 0;
+    cursor: pointer;
 }
 
 .modal-hint code:hover {
