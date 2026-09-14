@@ -22,8 +22,35 @@
 <title>SOC Toolkit</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="stylesheet" href="./style.css">
+<script>
+// Apply the saved accent color before first paint, so the boot screen
+// doesn't flash the default green before app.js (loaded at the end of
+// body) gets a chance to run on window "load".
+(function () {
+    try {
+        var hex = JSON.parse(localStorage.getItem("accentColor")) || "#00ff00";
+        var m = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+        if (m) {
+            var root = document.documentElement.style;
+            root.setProperty("--accent-r", parseInt(m[1], 16));
+            root.setProperty("--accent-g", parseInt(m[2], 16));
+            root.setProperty("--accent-b", parseInt(m[3], 16));
+        }
+    } catch (e) {}
+})();
+</script>
 </head>
 <body>
+<script>
+// Apply the saved theme before first paint, for the same reason as the
+// accent color script above — avoids a flash of the dark theme for
+// visitors who have the light theme saved.
+(function () {
+    var theme = "hacker";
+    try { theme = JSON.parse(localStorage.getItem("theme")) || "hacker"; } catch (e) {}
+    document.body.classList.add(theme);
+})();
+</script>
 <canvas id="particlesCanvas"></canvas>
 <div id="utcClock"></div>
 
@@ -78,7 +105,15 @@ Coded by <a href="https://www.linkedin.com/in/jimmybianco" target="_blank" style
 </pre>
 
 <div>
-    <textarea id="inputData" placeholder="Domain, URL, IP, hash, email, text" rows="1"></textarea>
+    <span class="input-wrap">
+        <textarea id="inputData" placeholder="Domain, URL, IP, hash, email, text   " rows="1"></textarea>
+        <button type="button" id="pasteBtn" class="paste-icon-btn" title="Paste from clipboard">
+            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true">
+                <path d="M4 1.5H3a2 2 0 0 0-2 2V14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V3.5a2 2 0 0 0-2-2h-1v1h1a1 1 0 0 1 1 1V14a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1h1z"/>
+                <path d="M9.5 1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1-.5-.5v-1a.5.5 0 0 1 .5-.5zm-3-1A1.5 1.5 0 0 0 5 1.5v1A1.5 1.5 0 0 0 6.5 4h3A1.5 1.5 0 0 0 11 2.5v-1A1.5 1.5 0 0 0 9.5 0z"/>
+            </svg>
+        </button>
+    </span>
     <button id="lookupBtn">▷ Lookup</button>
     <button id="openAll">🔓 Open Unlocked</button>
     <a href="https://buymeacoffee.com/jimmybianco" target="_blank"><button>☕ Buy me a coffee</button></a>

@@ -915,6 +915,17 @@ document.getElementById("resetConfig").onclick = () => {
 /* ================= EVENTS ================= */
 lookupBtn.onclick = () => renderLinks(inputData.value.trim());
 
+document.getElementById("pasteBtn")?.addEventListener("click", async () => {
+    try {
+        const text = await navigator.clipboard.readText();
+        if (!text.trim()) { showToast("Clipboard is empty."); return; }
+        inputData.value = text.trim();
+        renderLinks(inputData.value.trim());
+    } catch {
+        showToast("Couldn't read clipboard — check browser permissions.");
+    }
+});
+
 // Enter = lookup, Shift+Enter = newline
 inputData.addEventListener("keydown", e => {
     if (e.key === "Enter" && !e.shiftKey) {
