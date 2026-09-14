@@ -1617,6 +1617,19 @@ function renderNewsUI() {
     addRssBtn.onclick   = openAddRssModal;
     filtersEl.appendChild(addRssBtn);
 
+    // ── Same filter, as a dropdown for mobile (saves vertical space) ──
+    const selectEl = document.getElementById("newsFilterSelect");
+    if (selectEl) {
+        selectEl.innerHTML = "";
+        ["All", ..._newsResults.map(r => r.source.name)].forEach(name => {
+            const opt = document.createElement("option");
+            opt.value       = name;
+            opt.textContent = name;
+            if (name === _newsFilter) opt.selected = true;
+            selectEl.appendChild(opt);
+        });
+    }
+
     // ── Collect + filter items ──
     let items = [];
     _newsResults.forEach(({ source, items: src, ok }) => {
@@ -1967,5 +1980,10 @@ document.getElementById("tickerModeToggle").addEventListener("click", e => {
     toggleTickerMode();
 });
 document.getElementById("newsRefresh").addEventListener("click", () => loadNews(true));
+
+document.getElementById("newsFilterSelect")?.addEventListener("change", e => {
+    _newsFilter = e.target.value;
+    renderNewsUI();
+});
 
 /* ================= END ================= */

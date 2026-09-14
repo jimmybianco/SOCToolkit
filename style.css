@@ -1443,26 +1443,21 @@ body.modern .ticker-side           { border-right-color: rgba(255,255,255,0.1); 
     height: 54px;
 }
 
+/* Same narrow, stacked layout as card mode — just the expand badge on
+   top and the mode toggle below. The "NEWS" label isn't needed here,
+   the badge alone makes it clear what this is. */
 #newsTicker[data-mode="compact"] .ticker-side {
-    flex-direction: row;
-    width: auto;
-    padding: 0 10px;
-    gap: 8px;
+    flex-direction: column;
+    width: 42px;
+    padding: 4px 0;
+    gap: 4px;
     align-items: center;
     justify-content: center;
 }
 
 #newsTicker[data-mode="compact"] .ticker-label {
-    writing-mode: horizontal-tb;
-    transform: none;
-    font-size: 0.72em;
-    flex: none;
-    padding: 0;
+    display: none;
 }
-
-#newsTicker[data-mode="compact"] .ticker-expand-badge { order: 1; }
-#newsTicker[data-mode="compact"] .ticker-mode-btn     { order: 2; }
-#newsTicker[data-mode="compact"] .ticker-label        { order: 3; }
 
 #newsTicker[data-mode="compact"] .ticker-item {
     flex-direction: row;
@@ -1482,8 +1477,8 @@ body.modern .ticker-side           { border-right-color: rgba(255,255,255,0.1); 
 }
 
 #newsTicker[data-mode="compact"] .ticker-thumb {
-    width: 26px;
-    height: 26px;
+    width: 76px;
+    height: 46px;
     border-radius: 3px;
     flex-shrink: 0;
 }
@@ -1539,6 +1534,26 @@ body.modern .ticker-side           { border-right-color: rgba(255,255,255,0.1); 
     flex-wrap: wrap;
     gap: 6px;
     margin-bottom: 14px;
+}
+
+/* Dropdown filter — hidden on desktop, replaces the button row on
+   mobile so it doesn't eat vertical space by default. */
+.news-filter-select {
+    display: none;
+    width: 100%;
+    margin-bottom: 10px;
+    padding: 8px 10px;
+    font-size: 0.85em;
+    background: #111;
+    color: rgb(var(--accent-r), var(--accent-g), var(--accent-b));
+    border: 1px solid rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.35);
+    border-radius: 5px;
+}
+
+body.modern .news-filter-select {
+    background: #fff;
+    color: #0f172a;
+    border-color: #c7d2fe;
 }
 
 .news-filter-btn {
@@ -1816,21 +1831,7 @@ body.modern .news-ad-label {
 
     .ticker-ad-item ins.adsbygoogle { height: 72px; }
 
-    /* Compact ticker: tighter text/spacing so it fits the 54px bar,
-       and the side controls (expand badge, mode toggle, label) never
-       get squeezed out by the scrolling track next to them. */
-    #newsTicker[data-mode="compact"] .ticker-side {
-        gap: 4px;
-        padding: 0 6px;
-    }
-
-    #newsTicker[data-mode="compact"] .ticker-expand-badge,
-    #newsTicker[data-mode="compact"] .ticker-mode-btn {
-        flex-shrink: 0;
-        font-size: 0.55em;
-        padding: 3px 5px;
-    }
-
+    /* Compact ticker: tighter text so it fits the 54px bar. */
     #newsTicker[data-mode="compact"] .ticker-track {
         padding: 0;
     }
@@ -1846,8 +1847,14 @@ body.modern .news-ad-label {
         text-overflow: ellipsis;
     }
 
-    #newsFilters {
-        flex-wrap: wrap;
+    /* The dropdown replaces individual source buttons on mobile;
+       keep only the "+RSS" button in the (now much shorter) row. */
+    .news-filter-select {
+        display: block;
+    }
+
+    .news-filter-btn:not(.news-add-rss-btn) {
+        display: none;
     }
 
     /* Expanded news feed: stack the image above the text instead of a
