@@ -1113,12 +1113,26 @@ function updateAccentUI(hex) {
     });
 }
 
+// Sets the accent CSS custom properties two ways: inline style (works
+// everywhere we've tested except Brave on iOS, which doesn't reliably
+// reflect a live setProperty() update into color functions referencing
+// it) and an injected stylesheet rule (an older, more universally
+// supported update path) as a fallback.
 function applyAccentColor(hex, save = true) {
     const { r, g, b } = hexToRgb(hex);
     const root = document.documentElement.style;
     root.setProperty("--accent-r", r);
     root.setProperty("--accent-g", g);
     root.setProperty("--accent-b", b);
+
+    let styleTag = document.getElementById("accentStyle");
+    if (!styleTag) {
+        styleTag = document.createElement("style");
+        styleTag.id = "accentStyle";
+        document.head.appendChild(styleTag);
+    }
+    styleTag.textContent = `:root{--accent-r:${r};--accent-g:${g};--accent-b:${b};}`;
+
     _accentRGB = `${r},${g},${b}`;
     if (save) localStorage.setItem(ACCENT_KEY, JSON.stringify(hex));
     updateAccentUI(hex);

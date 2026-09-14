@@ -1801,7 +1801,12 @@ body.modern .news-ad-label {
 
     #footerBar { font-size: 0.75em; flex-wrap: wrap; height: auto; min-height: 36px; padding: 4px 8px; }
 
-    .ticker-side { width: 36px; }
+    .ticker-side { width: 44px; }
+
+    .ticker-expand-badge {
+        font-size: 0.62em;
+        padding: 3px 4px;
+    }
 
     .ticker-label { font-size: 0.6em; }
 
@@ -1811,24 +1816,55 @@ body.modern .news-ad-label {
 
     .ticker-ad-item ins.adsbygoogle { height: 72px; }
 
-    #newsFilters {
-        flex-wrap: nowrap;
-        overflow-x: auto;
-        -webkit-overflow-scrolling: touch;
-        padding-bottom: 4px;
+    /* Compact ticker: tighter text/spacing so it fits the 54px bar,
+       and the side controls (expand badge, mode toggle, label) never
+       get squeezed out by the scrolling track next to them. */
+    #newsTicker[data-mode="compact"] .ticker-side {
+        gap: 4px;
+        padding: 0 6px;
     }
 
+    #newsTicker[data-mode="compact"] .ticker-expand-badge,
+    #newsTicker[data-mode="compact"] .ticker-mode-btn {
+        flex-shrink: 0;
+        font-size: 0.55em;
+        padding: 3px 5px;
+    }
+
+    #newsTicker[data-mode="compact"] .ticker-track {
+        padding: 0;
+    }
+
+    #newsTicker[data-mode="compact"] .ticker-item {
+        max-width: 58vw;
+        padding: 0 10px;
+    }
+
+    #newsTicker[data-mode="compact"] .ticker-card-title {
+        font-size: 0.68em;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    #newsFilters {
+        flex-wrap: wrap;
+    }
+
+    /* Expanded news feed: stack the image above the text instead of a
+       fixed-size box squeezed beside it — much better use of a narrow
+       screen than the desktop side-by-side layout. */
     .news-card {
-        gap: 12px;
-        padding: 12px 14px;
+        flex-direction: column;
+        gap: 10px;
+        padding: 10px 12px;
     }
 
     .news-thumb {
-        width: 150px;
-        height: 110px;
+        width: 100%;
+        height: 160px;
     }
 
     .news-card .news-item-title {
-        font-size: 1.1em;
+        font-size: 1.05em;
     }
 }

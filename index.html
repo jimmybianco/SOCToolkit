@@ -31,10 +31,20 @@
         var hex = JSON.parse(localStorage.getItem("accentColor")) || "#00ff00";
         var m = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
         if (m) {
+            var r = parseInt(m[1], 16), g = parseInt(m[2], 16), b = parseInt(m[3], 16);
             var root = document.documentElement.style;
-            root.setProperty("--accent-r", parseInt(m[1], 16));
-            root.setProperty("--accent-g", parseInt(m[2], 16));
-            root.setProperty("--accent-b", parseInt(m[3], 16));
+            root.setProperty("--accent-r", r);
+            root.setProperty("--accent-g", g);
+            root.setProperty("--accent-b", b);
+            // Belt-and-suspenders: some browsers (seen in Brave on iOS) don't
+            // reliably reflect a live setProperty() update to a custom
+            // property into color functions that reference it. A plain
+            // injected stylesheet rule is a much older, more universally
+            // supported update path.
+            var style = document.createElement("style");
+            style.id = "accentStyle";
+            style.textContent = ":root{--accent-r:" + r + ";--accent-g:" + g + ";--accent-b:" + b + ";}";
+            document.head.appendChild(style);
         }
     } catch (e) {}
 })();
