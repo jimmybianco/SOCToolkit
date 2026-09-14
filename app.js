@@ -1578,16 +1578,21 @@ function stripHtml(html) {
     return (html || "").replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
 }
 
-function renderNewsUI() {
-    if (!_newsResults) return;
-
+// Builds the filter buttons + mobile dropdown from the static source
+// list (NEWS_SOURCES + custom RSS), so they appear immediately when the
+// panel opens — independent of whether loadNews()'s fetches have
+// resolved yet. Only the ⚠ failed-source marker depends on _newsResults,
+// and that's optional (absent until results land).
+function renderNewsFilters() {
     const filtersEl = document.getElementById("newsFilters");
-    const feedEl    = document.getElementById("newsFeed");
+    const selectEl  = document.getElementById("newsFilterSelect");
+    if (!filtersEl) return;
 
-    // ── Filter buttons ──
+    const names = ["All", ...getActiveSources().map(s => s.name)];
+
     filtersEl.innerHTML = "";
-    ["All", ..._newsResults.map(r => r.source.name)].forEach(name => {
-        const failed   = name !== "All" && _newsResults.find(r => r.source.name === name && !r.ok);
+    names.forEach(name => {
+        const failed   = name !== "All" && _newsResults && _newsResults.find(r => r.source.name === name && !r.ok);
         const isCustom = name !== "All" && _customSources.some(s => s.name === name);
         const btn      = document.createElement("button");
         btn.className  = "news-filter-btn" + (_newsFilter === name ? " news-filter-active" : "");
@@ -1617,11 +1622,9 @@ function renderNewsUI() {
     addRssBtn.onclick   = openAddRssModal;
     filtersEl.appendChild(addRssBtn);
 
-    // ── Same filter, as a dropdown for mobile (saves vertical space) ──
-    const selectEl = document.getElementById("newsFilterSelect");
     if (selectEl) {
         selectEl.innerHTML = "";
-        ["All", ..._newsResults.map(r => r.source.name)].forEach(name => {
+        names.forEach(name => {
             const opt = document.createElement("option");
             opt.value       = name;
             opt.textContent = name;
@@ -1629,6 +1632,13 @@ function renderNewsUI() {
             selectEl.appendChild(opt);
         });
     }
+}
+
+function renderNewsUI() {
+    renderNewsFilters();
+
+    const feedEl = document.getElementById("newsFeed");
+    if (!_newsResults) return;
 
     // ── Collect + filter items ──
     let items = [];
@@ -1919,8 +1929,8 @@ function toggleTickerMode() {
 
 async function loadNews(forceRefresh = false) {
     const active = getActiveSources();
-    document.getElementById("newsFeed").innerHTML    = `<p class="news-status">Loading news from ${active.length} sources…</p>`;
-    document.getElementById("newsFilters").innerHTML = "";
+    document.getElementById("newsFeed").innerHTML = `<p class="news-status">Loading news from ${active.length} sources…</p>`;
+    renderNewsFilters();
 
     const settled = await Promise.allSettled(active.map(s => fetchFeed(s, forceRefresh)));
     _newsResults  = active.map((source, i) => {
@@ -1956,6 +1966,7 @@ function toggleNewsSection() {
         document.body.style.paddingBottom = _tickerPaddingBottom();
         if (badge) badge.textContent = "▼ CLOSE";
         _applyTickerSpeed();
+        renderNewsFilters(); // instant, doesn't wait on the feed fetch
         if (!_newsResults) loadNews();
         requestAnimationFrame(() => section.scrollIntoView({ behavior: "smooth", block: "start" }));
     } else {
