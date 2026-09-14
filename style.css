@@ -1061,7 +1061,8 @@ select.modal-input {
     width: 100% !important;
     margin: 0 !important;
     box-sizing: border-box;
-    font-size: 0.9em;
+    /* 16px avoids iOS/WebKit's auto-zoom-on-focus, which kicks in below it */
+    font-size: 16px;
     background-color: #111;
     color: rgb(var(--accent-r), var(--accent-g), var(--accent-b));
     border: 1px solid rgb(var(--accent-r), var(--accent-g), var(--accent-b));

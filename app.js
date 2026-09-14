@@ -817,9 +817,6 @@ function openCustomToolModal(type) {
         showToast(`"${name}" added!`);
     };
 
-    // Focus name input
-    setTimeout(() => document.getElementById("ctName")?.focus(), 50);
-
     // Enter to save, Escape to close
     const onKeyDown = (e) => {
         if (e.key === "Escape") closeModal();
@@ -1799,7 +1796,6 @@ function openAddRssModal() {
         </div>`;
     overlay.appendChild(box);
     document.body.appendChild(overlay);
-    document.getElementById("rssName").focus();
 
     const confirmRss = () => {
         const name = document.getElementById("rssName").value.trim();
