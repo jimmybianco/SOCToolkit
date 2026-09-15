@@ -1426,6 +1426,10 @@ body { padding-bottom: 196px; }
     flex-direction: column;
     width: 200px;
     flex-shrink: 0;
+    /* Hard backstop: overflow:hidden alone does nothing without a
+       height ceiling to clip against — this is what actually stops
+       any future runaway content from inflating the card. */
+    max-height: 160px;
     border-radius: 8px;
     overflow: hidden;
     background: #151515;
@@ -1477,6 +1481,10 @@ body { padding-bottom: 196px; }
     -webkit-box-orient: vertical;
     overflow: hidden;
     white-space: normal;
+    /* Hard fallback in case -webkit-line-clamp isn't honored (older/
+       locked-down corporate browsers) — without this, an unusually
+       long headline has no height ceiling and balloons the whole card. */
+    max-height: 2.7em;
 }
 
 body.modern #newsTicker {
