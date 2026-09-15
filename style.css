@@ -1512,6 +1512,8 @@ body.modern #newsTicker .ticker-item:hover {
     border-style: dashed;
     border-color: rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.25);
     cursor: default;
+    position: relative;
+    overflow: hidden;
 }
 
 .ticker-ad-label {
@@ -1526,8 +1528,16 @@ body.modern #newsTicker .ticker-item:hover {
     display: block;
     width: 100%;
     /* Matches a real news card's natural height (thumb + body text),
-       so the ad slot doesn't look shorter than its neighbors in the row. */
-    height: 120px;
+       so the ad slot doesn't look shorter than its neighbors in the row.
+       !important because AdSense's "auto" format script injects its own
+       inline size/position once it resolves the (currently placeholder)
+       ad slot — without this it can override our box and push into or
+       cover neighboring cards. */
+    height: 120px !important;
+    max-height: 120px !important;
+    max-width: 100% !important;
+    overflow: hidden !important;
+    position: relative !important;
     margin: 4px 0 8px;
 }
 
