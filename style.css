@@ -1308,7 +1308,7 @@ body { padding-bottom: 196px; }
     bottom: 36px;
     left: 0;
     width: 100%;
-    height: 152px;
+    height: 170px;
     background: rgba(0,0,0,0.96);
     border-top: 1px solid rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.25);
     display: flex;
@@ -1395,7 +1395,7 @@ body { padding-bottom: 196px; }
     overflow: hidden;
     display: flex;
     align-items: center;
-    padding: 10px 0;
+    padding: 6px 0;
 }
 
 .ticker-content {
@@ -1429,7 +1429,7 @@ body { padding-bottom: 196px; }
     /* Hard backstop: overflow:hidden alone does nothing without a
        height ceiling to clip against — this is what actually stops
        any future runaway content from inflating the card. */
-    max-height: 160px;
+    max-height: 170px;
     border-radius: 8px;
     overflow: hidden;
     background: #151515;
@@ -1525,7 +1525,9 @@ body.modern #newsTicker .ticker-item:hover {
 .ticker-ad-item ins.adsbygoogle {
     display: block;
     width: 100%;
-    height: 86px;
+    /* Matches a real news card's natural height (thumb + body text),
+       so the ad slot doesn't look shorter than its neighbors in the row. */
+    height: 120px;
     margin: 4px 0 8px;
 }
 

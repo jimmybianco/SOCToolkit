@@ -2220,7 +2220,7 @@ let _footerPanelOpen = false;
 let _footerPanelH    = 0;
 
 function _tickerPaddingBottom() {
-    return `${(_tickerMode === "card" ? 160 : 62) + FOOTER_BAR_H + _footerPanelH}px`;
+    return `${(_tickerMode === "card" ? 170 : 62) + FOOTER_BAR_H + _footerPanelH}px`;
 }
 
 function _applyModeBtn() {
