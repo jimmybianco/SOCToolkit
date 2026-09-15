@@ -1400,7 +1400,10 @@ body { padding-bottom: 196px; }
 
 .ticker-content {
     display: inline-flex;
-    align-items: stretch;
+    /* flex-start, not stretch: one abnormally tall item (e.g. the ad
+       slot before a real ad loads) must not inflate every other card
+       in the row to match its height. */
+    align-items: flex-start;
     white-space: nowrap;
     animation: ticker-scroll 60s linear infinite;
     will-change: transform;
