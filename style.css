@@ -598,6 +598,17 @@ body.hacker .footer-section a:hover {
     opacity: 0.8;
 }
 
+/* Modern theme: the same indigo as its buttons. */
+body.modern .footer-section a,
+body.modern .footer-section a:visited {
+    color: #4338ca;
+    text-decoration: underline;
+}
+
+body.modern .footer-section a:hover {
+    color: #6366f1;
+}
+
 /* While reading, sit above the news ticker (500) and the cookie banner
    (1100), below dialogs (9999). */
 #footerStack.reading {
