@@ -355,7 +355,8 @@ function parseMultipleIoCs(raw) {
             const pieces = line.split(/[,;]/)
                 .map(s => normalizeDefang(s.trim()))
                 .filter(Boolean);
-            const allIocs = pieces.length > 0 && pieces.every(p => detectType(p) !== "text");
+            if (!pieces.length) return []; // blank, or only separators like "," / ";"
+            const allIocs = pieces.every(p => detectType(p) !== "text");
             return allIocs ? pieces : [normalizeDefang(line.trim())];
         })
         .filter(Boolean);
@@ -853,21 +854,29 @@ function uniqueName(base, isTaken, variant) {
     }
 }
 
-function isBuiltInToolName(type, name) {
-    return (sources[type] || []).some(s => s.name.toLowerCase() === String(name).toLowerCase());
+// Built-in tool names across *all* IoC types. Hidden/unlocked flags, order
+// and Manage tools rows are keyed by name, so a custom tool may not reuse a
+// built-in name even if that built-in lives in a different type (e.g. a
+// custom "Google" for ipv4 vs the built-in "Google" in text).
+const BUILTIN_TOOL_NAMES = new Set(Object.values(sources).flat().map(s => s.name.toLowerCase()));
+
+function isBuiltInToolName(name) {
+    return BUILTIN_TOOL_NAMES.has(String(name).toLowerCase());
 }
 
 // Keeps only well-formed custom tools, so a hand-edited or old config file
 // can't break lookups: { <known type>: [{ name, url, icon? }, ...] }.
-// A tool whose name clashes with a built-in tool or another custom tool of
-// the same type is renamed ("X (custom)") rather than dropped, so it stays
+// A tool whose name clashes with a built-in tool (of any type) or another
+// custom tool of the same type is renamed ("X (custom)") rather than
+// dropped — consistently across types, since the built-in set is the same
+// for every type — so it stays
 // visible and can be edited or deleted. Renames are reported in `renamed`.
 function sanitizeCustomTools(data, renamed = []) {
     const clean = {};
     if (!data || typeof data !== "object" || Array.isArray(data)) return clean;
     Object.keys(sources).forEach(type => {
         if (!Array.isArray(data[type])) return;
-        const taken = new Set((sources[type] || []).map(s => s.name.toLowerCase()));
+        const taken = new Set(BUILTIN_TOOL_NAMES);
         clean[type] = [];
         data[type].forEach(t => {
             if (!t || typeof t.name !== "string" || typeof t.url !== "string") return;
@@ -1063,9 +1072,8 @@ function openCustomToolModal(type, onSaved, editSource) {
         // doesn't leave the original tool deleted. The tool being edited
         // doesn't count as its own duplicate.
         const isSelf = e => editSource && e.name.toLowerCase() === editSource.name.toLowerCase();
-        const dupeIn = selTypes.filter(t => isBuiltInToolName(t, name));
-        if (dupeIn.length) {
-            showModalError(errEl, `A tool named "${name}" already exists for ${dupeIn.join(", ")}.`); return;
+        if (isBuiltInToolName(name)) {
+            showModalError(errEl, `"${name}" is the name of a built-in tool. Choose another name.`); return;
         }
         // A custom tool is one tool across all its IoC types, so its name must
         // be unique among custom tools of *any* type (other than itself).
@@ -2399,7 +2407,12 @@ function openAddRssModal(onSaved, editSource) {
     const overlay = document.createElement("div");
     overlay.id        = "addRssModal";
     overlay.className = "modal-overlay";
-    overlay.onclick   = e => { if (e.target === overlay) overlay.remove(); };
+    overlay.onclick   = e => { if (e.target === overlay) closeForm(); };
+
+    // Escape is listened for on the whole page while the form is open, so it
+    // works even before the user clicks into the form.
+    const onEscape  = e => { if (e.key === "Escape") closeForm(); };
+    const closeForm = () => { overlay.remove(); document.removeEventListener("keydown", onEscape); };
 
     const box = document.createElement("div");
     box.className = "modal-box";
@@ -2422,6 +2435,7 @@ function openAddRssModal(onSaved, editSource) {
         document.getElementById("rssName").value = editSource.name;
         document.getElementById("rssUrl").value  = editSource.rss;
     }
+    document.getElementById("rssName").focus();
 
     const confirmRss = () => {
         const name = document.getElementById("rssName").value.trim();
@@ -2457,18 +2471,18 @@ function openAddRssModal(onSaved, editSource) {
             setNewsSourceHidden(name, false);
         }
         saveCustomSources();
-        overlay.remove();
+        closeForm();
         showToast(editSource ? `"${name}" updated.` : `Added "${name}" — loading…`);
         loadNews();
         if (typeof onSaved === "function") onSaved();
     };
 
-    document.getElementById("rssCancel").onclick  = () => overlay.remove();
+    document.getElementById("rssCancel").onclick  = closeForm;
     document.getElementById("rssConfirm").onclick = confirmRss;
     box.addEventListener("keydown", e => {
         if (e.key === "Enter" && document.activeElement?.id !== "rssCancel") confirmRss();
-        if (e.key === "Escape") overlay.remove();
     });
+    document.addEventListener("keydown", onEscape);
 }
 
 function openManageRssModal() {
