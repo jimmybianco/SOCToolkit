@@ -1222,23 +1222,41 @@ const bootEl    = document.getElementById("bootOutput");
 const appEl     = document.getElementById("app");
 const queryInput = document.getElementById("inputData");
 
+function finishBoot() {
+    document.getElementById("bootScreen").style.display = "none";
+    appEl.style.display = "block";
+    queryInput.focus();
+    loadNews();
+}
+
+// Only play the boot animation on the first visit of the (local) day.
+function startBoot() {
+    const d = new Date();
+    const today = `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`;
+    let lastBoot = null;
+    try { lastBoot = localStorage.getItem("bootShownDate"); } catch {}
+    if (lastBoot === today) {
+        finishBoot();
+        return;
+    }
+    try { localStorage.setItem("bootShownDate", today); } catch {}
+    bootSequence();
+}
+
 function bootSequence() {
     if (line < bootLines.length) {
         bootEl.textContent += bootLines[line] + "\n";
         line++;
         setTimeout(bootSequence, 350);
     } else {
-        setTimeout(() => {
-            document.getElementById("bootScreen").style.display = "none";
-            appEl.style.display = "block";
-            queryInput.focus();
-            loadNews();
-        }, 500);
+        setTimeout(finishBoot, 500);
     }
 }
 
-// FIX: use addEventListener instead of window.onload to avoid overwriting other handlers
-window.addEventListener("load", bootSequence);
+// DOMContentLoaded (not "load") so repeat visits skip straight to the app
+// instead of showing a blank boot screen until every ad/image finishes loading.
+// It still fires after this whole script has run, so everything is defined.
+document.addEventListener("DOMContentLoaded", startBoot);
 
 /* ================= THEME TOGGLE ================= */
 const themeBtn = document.getElementById("themeToggle");
@@ -1251,7 +1269,7 @@ function applyTheme(theme) {
 }
 
 // FIX: use addEventListener to coexist with bootSequence listener
-window.addEventListener("load", () => {
+document.addEventListener("DOMContentLoaded", () => {
     let savedTheme = "hacker";
     try { savedTheme = JSON.parse(localStorage.getItem("theme")) || "hacker"; } catch {}
     applyTheme(savedTheme);
