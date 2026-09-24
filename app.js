@@ -1301,8 +1301,20 @@ document.getElementById("importConfigInput").onchange = (e) => {
                 if (value === undefined || value === null) return;
                 // Clean up the parts that can break the page if malformed;
                 // skip any other key whose basic shape is wrong.
-                if (k === CUSTOM_TOOLS_KEY)   value = sanitizeCustomTools(value);
-                else if (k === CUSTOM_RSS_KEY) value = sanitizeCustomSources(value);
+                if (k === CUSTOM_TOOLS_KEY || k === CUSTOM_RSS_KEY) {
+                    // A malformed section (wrong shape, or entries but none
+                    // valid) is skipped, so it can't wipe the user's current
+                    // tools/feeds. A genuinely empty section still applies.
+                    const isTools = k === CUSTOM_TOOLS_KEY;
+                    const shapeOk = isTools ? (value && typeof value === "object" && !Array.isArray(value)) : Array.isArray(value);
+                    if (!shapeOk) return;
+                    const clean = isTools ? sanitizeCustomTools(value) : sanitizeCustomSources(value);
+                    const count = v => isTools
+                        ? Object.values(v).reduce((n, list) => n + (Array.isArray(list) ? list.length : 1), 0)
+                        : v.length;
+                    if (count(value) > 0 && count(clean) === 0) return;
+                    value = clean;
+                }
                 else if (!isValidConfigValue(k, value)) return;
                 localStorage.setItem(k, JSON.stringify(value));
                 applied++;
@@ -1743,6 +1755,9 @@ function setCookieConsent(value) {
     try { localStorage.setItem(COOKIE_CONSENT_KEY, value); } catch {}
     cookieBanner.hidden = true;
     if (value === "granted") {
+        // Re-enable in case the visitor rejected earlier in this visit:
+        // loadAnalytics() only clears this flag the first time it runs.
+        window[`ga-disable-${GA_ID}`] = false;
         loadAnalytics();
     } else {
         window[`ga-disable-${GA_ID}`] = true;
@@ -2134,6 +2149,10 @@ function renderNewsFilters() {
     if (!filtersEl) return;
 
     const names = ["All", ...getActiveSources().map(s => s.name)];
+
+    // The selected feed may have been renamed, hidden or removed since it
+    // was picked; fall back to "All" instead of filtering on a dead name.
+    if (!names.includes(_newsFilter)) _newsFilter = "All";
 
     filtersEl.innerHTML = "";
     names.forEach(name => {
