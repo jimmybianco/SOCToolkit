@@ -1960,7 +1960,11 @@ body.modern .news-ad-label {
 
     .ticker-thumb { height: 72px; }
 
-    .ticker-ad-item ins.adsbygoogle { height: 72px; }
+    /* !important to beat the desktop rule's !important cap. */
+    .ticker-ad-item ins.adsbygoogle {
+        height: 72px !important;
+        max-height: 72px !important;
+    }
 
     /* Compact ticker: tighter text so it fits the 54px bar. */
     #newsTicker[data-mode="compact"] .ticker-track {
