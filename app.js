@@ -2132,10 +2132,20 @@ function buildTickerAdItem() {
     return a;
 }
 
+// Two names that differ only in case or spaces/underscores would look like
+// duplicates in the filters and share a feed cache key (_lsKey), so treat
+// them as the same name.
+function sameSourceName(a, b) {
+    const norm = n => n.trim().toLowerCase().replace(/[\s_]+/g, "_");
+    return norm(a) === norm(b);
+}
+
 function removeCustomSource(name) {
     _customSources = _customSources.filter(s => s.name !== name);
     saveCustomSources();
     try { localStorage.removeItem(_lsKey(name)); } catch {}
+    // Don't let a later feed with the same name start out hidden.
+    setNewsSourceHidden(name, false);
     if (_newsFilter === name) _newsFilter = "All";
     loadNews();
 }
@@ -2180,13 +2190,18 @@ function openAddRssModal(onSaved, editSource) {
         if (!rss || !/^https?:\/\//i.test(rss)) { showToast("Enter a valid RSS URL."); return; }
 
         const others = [...NEWS_SOURCES, ..._customSources].filter(s => !editSource || s.name !== editSource.name);
-        if (others.some(s => s.name === name)) {
+        if (others.some(s => sameSourceName(s.name, name))) {
             showToast("A source with that name already exists."); return;
         }
 
         if (editSource) {
             const idx = _customSources.findIndex(s => s.name === editSource.name);
             if (idx !== -1) _customSources[idx] = { name, rss };
+            // The feed cache is keyed by name, so a new URL or name must not
+            // keep showing (and merging in) articles from the old feed.
+            if (rss !== editSource.rss || name !== editSource.name) {
+                try { localStorage.removeItem(_lsKey(editSource.name)); } catch {}
+            }
             // Carry over the hidden/enabled state if the name changed
             if (name !== editSource.name && isNewsSourceHidden(editSource.name)) {
                 setNewsSourceHidden(editSource.name, false);
@@ -2194,6 +2209,8 @@ function openAddRssModal(onSaved, editSource) {
             }
         } else {
             _customSources.push({ name, rss });
+            // Clear a stale hidden flag left by an older feed with this name.
+            setNewsSourceHidden(name, false);
         }
         saveCustomSources();
         overlay.remove();
