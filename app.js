@@ -1818,6 +1818,7 @@ function removeAnalyticsCookies() {
 function setCookieConsent(value) {
     try { localStorage.setItem(COOKIE_CONSENT_KEY, value); } catch {}
     cookieBanner.hidden = true;
+    updateAnalyticsStatus();
     if (value === "granted") {
         // Re-enable in case the visitor rejected earlier in this visit:
         // loadAnalytics() only clears this flag the first time it runs.
@@ -1835,7 +1836,34 @@ function showCookieBanner() {
 
 document.getElementById("cookieAccept").addEventListener("click", () => setCookieConsent("granted"));
 document.getElementById("cookieReject").addEventListener("click", () => setCookieConsent("denied"));
-document.querySelectorAll(".cookie-settings-btn").forEach(btn => btn.addEventListener("click", showCookieBanner));
+// "Cookies" in the footer opens a settings section (like Privacy/Terms)
+// rather than the banner: cookie-notice blockers often hide the banner, which
+// made the button look broken.
+const ANALYTICS_STATUS_LABELS = { granted: "Accepted", denied: "Rejected" };
+
+function updateAnalyticsStatus() {
+    const consent = getCookieConsent();
+    document.getElementById("analyticsStatus").textContent = ANALYTICS_STATUS_LABELS[consent] || "Not set";
+    document.getElementById("analyticsAccept").classList.toggle("choice-active", consent === "granted");
+    document.getElementById("analyticsReject").classList.toggle("choice-active", consent === "denied");
+}
+
+document.getElementById("analyticsAccept").addEventListener("click", () => {
+    setCookieConsent("granted");
+    showToast("Analytics cookies accepted.");
+});
+document.getElementById("analyticsReject").addEventListener("click", () => {
+    setCookieConsent("denied");
+    showToast("Analytics cookies rejected.");
+});
+
+// "Cookie settings" link inside the Privacy Policy opens the same section.
+document.querySelectorAll(".open-analytics-settings").forEach(btn => btn.addEventListener("click", () => {
+    const footerBtn = document.querySelector('.footer-btn[data-target="analyticsSection"]');
+    if (document.getElementById("analyticsSection").style.display !== "block") footerBtn.click();
+}));
+
+updateAnalyticsStatus();
 document.getElementById("cookiePolicyLink").addEventListener("click", () => {
     const privacyBtn = document.querySelector('.footer-btn[data-target="privacySection"]');
     if (document.getElementById("privacySection").style.display !== "block") privacyBtn.click();

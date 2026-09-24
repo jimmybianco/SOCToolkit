@@ -688,14 +688,16 @@ body.modern .settings-accent-row { display: none; } /* accent color only applies
 
 #cookieBanner p { margin: 0; flex: 1; }
 
-.cookie-banner-actions {
+.cookie-banner-actions,
+.choice-actions {
     display: flex;
     gap: 8px;
     flex-shrink: 0;
 }
 
 /* Accept and Reject get equal weight, as consent rules require. */
-.cookie-banner-actions button {
+.cookie-banner-actions button,
+.choice-actions button {
     padding: 6px 14px;
     background: transparent;
     border: 1px solid rgb(var(--accent-r), var(--accent-g), var(--accent-b));
@@ -705,8 +707,15 @@ body.modern .settings-accent-row { display: none; } /* accent color only applies
     cursor: pointer;
 }
 
-.cookie-banner-actions button:hover {
+.cookie-banner-actions button:hover,
+.choice-actions button:hover {
     background: rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.15);
+}
+
+/* The visitor's current choice in the footer's Cookie settings section. */
+.choice-actions button.choice-active {
+    background: rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.25);
+    font-weight: bold;
 }
 
 body.modern #cookieBanner {
@@ -717,13 +726,19 @@ body.modern #cookieBanner {
     font-family: "Inter", sans-serif;
 }
 
-body.modern .cookie-banner-actions button {
+body.modern .cookie-banner-actions button,
+body.modern .choice-actions button {
     border-color: #6366f1;
     color: #4338ca;
 }
 
-body.modern .cookie-banner-actions button:hover {
+body.modern .cookie-banner-actions button:hover,
+body.modern .choice-actions button:hover {
     background: rgba(99,102,241,0.1);
+}
+
+body.modern .choice-actions button.choice-active {
+    background: rgba(99,102,241,0.18);
 }
 
 @media (max-width: 600px) {
