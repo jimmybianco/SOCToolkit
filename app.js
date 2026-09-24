@@ -1227,6 +1227,7 @@ function finishBoot() {
     appEl.style.display = "block";
     queryInput.focus();
     loadNews();
+    if (!getCookieConsent()) showCookieBanner();
 }
 
 // Only play the boot animation on the first visit of the (local) day.
@@ -1436,7 +1437,7 @@ updateUTCClock();
 document.getElementById("currentYear").textContent = new Date().getFullYear();
 
 /* ================= FOOTER TOGGLE ================= */
-document.querySelectorAll(".footer-btn").forEach(btn => {
+document.querySelectorAll(".footer-btn[data-target]").forEach(btn => {
     btn.addEventListener("click", () => {
         const targetId = btn.dataset.target;
         const section  = document.getElementById(targetId);
@@ -1445,7 +1446,7 @@ document.querySelectorAll(".footer-btn").forEach(btn => {
         const opening  = section.style.display !== "block";
 
         document.querySelectorAll(".footer-section").forEach(s => s.style.display = "none");
-        document.querySelectorAll(".footer-btn").forEach(b => b.classList.remove("active"));
+        document.querySelectorAll(".footer-btn[data-target]").forEach(b => b.classList.remove("active"));
 
         if (opening) {
             section.style.display = "block";
@@ -1453,7 +1454,7 @@ document.querySelectorAll(".footer-btn").forEach(btn => {
         }
 
         // Measure actual content height before CSS transition kicks in
-        const panelH         = opening ? panel.scrollHeight : 0;
+        const panelH         = opening ? Math.min(panel.scrollHeight, FOOTER_PANEL_MAX_H) : 0;
         _footerPanelOpen     = opening;
         _footerPanelH        = panelH;
         panel.classList.toggle("open", opening);
@@ -1462,6 +1463,51 @@ document.querySelectorAll(".footer-btn").forEach(btn => {
         document.body.style.paddingBottom = _tickerPaddingBottom();
     });
 });
+/* ================= COOKIE CONSENT ================= */
+// Google Analytics is only loaded once the visitor accepts (see
+// loadAnalytics() in index.html). Rejecting after accepting disables GA and
+// removes its cookies.
+const COOKIE_CONSENT_KEY = "cookieConsent";
+const GA_ID              = "G-NM8VMD29LZ";
+const cookieBanner       = document.getElementById("cookieBanner");
+
+function getCookieConsent() {
+    try { return localStorage.getItem(COOKIE_CONSENT_KEY); } catch { return null; }
+}
+
+function removeAnalyticsCookies() {
+    const host = location.hostname;
+    const domains = ["", host, "." + host, "." + host.split(".").slice(-2).join(".")];
+    document.cookie.split(";").map(c => c.split("=")[0].trim())
+        .filter(name => name === "_ga" || name.startsWith("_ga_"))
+        .forEach(name => domains.forEach(d => {
+            document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/${d ? "; domain=" + d : ""}`;
+        }));
+}
+
+function setCookieConsent(value) {
+    try { localStorage.setItem(COOKIE_CONSENT_KEY, value); } catch {}
+    cookieBanner.hidden = true;
+    if (value === "granted") {
+        loadAnalytics();
+    } else {
+        window[`ga-disable-${GA_ID}`] = true;
+        removeAnalyticsCookies();
+    }
+}
+
+function showCookieBanner() {
+    cookieBanner.hidden = false;
+}
+
+document.getElementById("cookieAccept").addEventListener("click", () => setCookieConsent("granted"));
+document.getElementById("cookieReject").addEventListener("click", () => setCookieConsent("denied"));
+document.querySelectorAll(".cookie-settings-btn").forEach(btn => btn.addEventListener("click", showCookieBanner));
+document.getElementById("cookiePolicyLink").addEventListener("click", () => {
+    const privacyBtn = document.querySelector('.footer-btn[data-target="privacySection"]');
+    if (document.getElementById("privacySection").style.display !== "block") privacyBtn.click();
+});
+
 /* ================= PARTICLES SYSTEM ================= */
 
 const canvas = document.getElementById("particlesCanvas");
@@ -2234,6 +2280,7 @@ function _applyTickerSpeed() {
 }
 
 const FOOTER_BAR_H  = 36;
+const FOOTER_PANEL_MAX_H = 280; // matches #footerPanel.open max-height
 let _savedTickerMode = null;
 let _footerPanelOpen = false;
 let _footerPanelH    = 0;

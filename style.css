@@ -647,6 +647,95 @@ body.modern .settings-accent-row { display: none; } /* accent color only applies
 .footer-btn.active { opacity: 1; font-weight: bold; }
 
 
+.footer-section p { margin: 0 0 8px; }
+
+.footer-updated { opacity: 0.6; font-size: 0.9em; }
+
+/* Looks like a link, but it's a button (opens the cookie banner / privacy). */
+.footer-inline-link {
+    background: none;
+    border: none;
+    padding: 0;
+    color: inherit;
+    font: inherit;
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+/* ================= COOKIE BANNER ================= */
+#cookieBanner {
+    position: fixed;
+    left: 50%;
+    bottom: 48px;
+    transform: translateX(-50%);
+    width: min(640px, calc(100% - 32px));
+    box-sizing: border-box;
+    z-index: 1100;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 14px 18px;
+    background: rgba(0,0,0,0.97);
+    border: 1px solid rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.45);
+    border-radius: 8px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+    font-family: "Courier New", monospace;
+    font-size: 0.85em;
+    line-height: 1.5;
+    color: rgb(var(--accent-r), var(--accent-g), var(--accent-b));
+}
+
+#cookieBanner[hidden] { display: none; }
+
+#cookieBanner p { margin: 0; flex: 1; }
+
+.cookie-banner-actions {
+    display: flex;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+/* Accept and Reject get equal weight, as consent rules require. */
+.cookie-banner-actions button {
+    padding: 6px 14px;
+    background: transparent;
+    border: 1px solid rgb(var(--accent-r), var(--accent-g), var(--accent-b));
+    border-radius: 4px;
+    color: inherit;
+    font: inherit;
+    cursor: pointer;
+}
+
+.cookie-banner-actions button:hover {
+    background: rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.15);
+}
+
+body.modern #cookieBanner {
+    background: #ffffff;
+    border-color: rgba(15,23,42,0.15);
+    box-shadow: 0 8px 24px rgba(15,23,42,0.15);
+    color: #0f172a;
+    font-family: "Inter", sans-serif;
+}
+
+body.modern .cookie-banner-actions button {
+    border-color: #6366f1;
+    color: #4338ca;
+}
+
+body.modern .cookie-banner-actions button:hover {
+    background: rgba(99,102,241,0.1);
+}
+
+@media (max-width: 600px) {
+    #cookieBanner {
+        flex-direction: column;
+        align-items: stretch;
+        bottom: 44px;
+    }
+    .cookie-banner-actions button { flex: 1; }
+}
+
 /* ================= MODERN THEME ================= */
 body.modern {
     background: radial-gradient(circle at top, #ffffff 0%, #eceef4 40%, #eceef4 100%);
