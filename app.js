@@ -344,12 +344,20 @@ async function prepareData(input, type, src) {
 }
 
 /* ================= MULTI-IOC PARSER ================= */
+// One value per line. A line is also split on "," or ";" — but only when
+// every piece is itself an indicator (IP, domain, URL, hash or email), so
+// "1.1.1.1, 2.2.2.2" or "a@x.com; b@y.com" become several lookups, while a
+// URL with commas in its query or a command line stays whole.
 function parseMultipleIoCs(raw) {
     return raw
-        .split(/[\n,]+/)          // split by newline or comma
-        .map(s => s.trim())
-        .filter(Boolean)
-        .map(normalizeDefang)
+        .split(/\r?\n/)
+        .flatMap(line => {
+            const pieces = line.split(/[,;]/)
+                .map(s => normalizeDefang(s.trim()))
+                .filter(Boolean);
+            const allIocs = pieces.length > 0 && pieces.every(p => detectType(p) !== "text");
+            return allIocs ? pieces : [normalizeDefang(line.trim())];
+        })
         .filter(Boolean);
 }
 
@@ -1100,10 +1108,13 @@ function openCustomToolModal(type, onSaved, editSource) {
         if (typeof onSaved === "function") onSaved();
     };
 
-    // Enter to save, Escape to close
+    // Enter to save, Escape to close. Enter on another button of the form
+    // (Cancel, Choose image…, Remove) keeps that button's own action.
     const onKeyDown = (e) => {
         if (e.key === "Escape") closeModal();
-        if (e.key === "Enter" && document.activeElement?.id !== "ctCancel") {
+        const focused = document.activeElement;
+        const onOtherButton = focused?.tagName === "BUTTON" && focused.id !== "ctSave";
+        if (e.key === "Enter" && !onOtherButton) {
             document.getElementById("ctSave")?.click();
         }
     };
