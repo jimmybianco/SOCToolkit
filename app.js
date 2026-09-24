@@ -1641,7 +1641,17 @@ const RSS2JSON       = "https://api.rss2json.com/v1/api.json?rss_url=";
 const NEWS_TTL_MS    = 5 * 60 * 60 * 1000; // 5 hours
 
 // "Advertise here" slots: a mailto link in place of real ads.
-const ADVERTISE_MAILTO = "mailto:contact@soctoolkit.com?subject=Advertising%20on%20SOC%20Toolkit";
+const ADVERTISE_EMAIL  = "contact@soctoolkit.com";
+const ADVERTISE_MAILTO = `mailto:${ADVERTISE_EMAIL}?subject=Advertising%20on%20SOC%20Toolkit`;
+
+// mailto: silently does nothing when the visitor has no mail app set up
+// (common for webmail users), so also copy the address as a fallback.
+function onAdvertiseClick(e) {
+    e.stopPropagation();
+    (navigator.clipboard ? navigator.clipboard.writeText(ADVERTISE_EMAIL) : Promise.reject())
+        .then(() => showToast(`Email copied: ${ADVERTISE_EMAIL}`))
+        .catch(() => showToast(`Contact us at ${ADVERTISE_EMAIL}`));
+}
 const NEWS_AD_EVERY   = 8;
 const NEWS_AD_MAX     = 2;
 const TICKER_AD_EVERY = 6; // card view only; hidden in compact via CSS
@@ -1930,6 +1940,7 @@ function buildNewsAdSlot() {
     const a = document.createElement("a");
     a.className = "news-ad-slot";
     a.href      = ADVERTISE_MAILTO;
+    a.addEventListener("click", onAdvertiseClick);
 
     const label = document.createElement("span");
     label.className   = "news-ad-label";
@@ -1938,7 +1949,7 @@ function buildNewsAdSlot() {
 
     const text = document.createElement("span");
     text.className = "news-ad-text";
-    text.innerHTML = "Want your brand in front of cybersecurity professionals? Contact us at <strong>contact@soctoolkit.com</strong>";
+    text.innerHTML = `Want your brand in front of cybersecurity professionals? Contact us at <strong>${ADVERTISE_EMAIL}</strong>`;
     a.appendChild(text);
 
     return a;
@@ -1948,7 +1959,7 @@ function buildTickerAdItem() {
     const a = document.createElement("a");
     a.className = "ticker-item ticker-ad-item";
     a.href      = ADVERTISE_MAILTO;
-    a.addEventListener("click", e => e.stopPropagation());
+    a.addEventListener("click", onAdvertiseClick);
 
     const label = document.createElement("span");
     label.className   = "ticker-ad-label";
