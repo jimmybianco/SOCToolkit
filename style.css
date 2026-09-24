@@ -586,6 +586,18 @@ body.modern #footerPanel.open {
     background: #f8fafc;
 }
 
+/* Links in About/Privacy/Terms/… follow the theme's accent color in the
+   dark theme instead of the browser's default blue/purple. */
+body.hacker .footer-section a,
+body.hacker .footer-section a:visited {
+    color: rgb(var(--accent-r), var(--accent-g), var(--accent-b));
+    text-decoration: underline;
+}
+
+body.hacker .footer-section a:hover {
+    opacity: 0.8;
+}
+
 /* While reading, sit above the news ticker (500) and the cookie banner
    (1100), below dialogs (9999). */
 #footerStack.reading {
