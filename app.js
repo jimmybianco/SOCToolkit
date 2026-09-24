@@ -617,7 +617,11 @@ async function renderLinks(raw) {
         a.className = "link-card";
 
         const img = document.createElement("img");
-        img.src = `https://www.google.com/s2/favicons?domain=${domain}`;
+        // Self-hosted icons (icons/<hostname>.png) so loading a card doesn't
+        // send the visitor's IP to Google's favicon service. Custom tools
+        // have no bundled icon and fall back to a generic one.
+        img.src = `icons/${domain}.png`;
+        img.onerror = () => { img.onerror = null; img.src = GENERIC_TOOL_ICON; };
         img.alt = src.name;
 
         const titleDiv = document.createElement("div");
@@ -734,6 +738,12 @@ async function renderLinks(raw) {
 
 /* ================= CUSTOM TOOLS ================= */
 const CUSTOM_TOOLS_KEY = "soc_custom_tools";
+
+// Globe icon for tools without a bundled favicon (e.g. custom tools).
+const GENERIC_TOOL_ICON = "data:image/svg+xml," + encodeURIComponent(
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#888" stroke-width="1.6">' +
+    '<circle cx="12" cy="12" r="9.5"/><path d="M2.5 12h19M12 2.5c2.8 2.8 2.8 16.2 0 19M12 2.5c-2.8 2.8-2.8 16.2 0 19"/></svg>'
+);
 
 function loadCustomTools() {
     try { return JSON.parse(localStorage.getItem(CUSTOM_TOOLS_KEY) || "{}"); } catch { return {}; }
