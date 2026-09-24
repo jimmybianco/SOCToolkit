@@ -1241,10 +1241,22 @@ function openManageToolsModal() {
 
     document.getElementById("manageToolsAddBtn").onclick = () => openCustomToolModal("all", renderRows);
 
-    const close = () => { overlay.remove(); document.removeEventListener("keydown", onKeyDown); };
+    // Closing may have hidden, shown or deleted tools: refresh the visible
+    // results so they don't keep showing stale cards until the next lookup.
+    const close = () => {
+        overlay.remove();
+        document.removeEventListener("keydown", onKeyDown);
+        const raw = inputData.value.trim();
+        if (raw && results.children.length) renderLinks(raw);
+    };
     document.getElementById("manageToolsClose").onclick = close;
 
-    const onKeyDown = e => { if (e.key === "Escape") close(); };
+    // Escape belongs to the Add/Edit tool form while it's open on top.
+    const onKeyDown = e => {
+        if (e.key !== "Escape") return;
+        if (document.getElementById("customToolModal") || e.target.closest?.("#customToolModal")) return;
+        close();
+    };
     document.addEventListener("keydown", onKeyDown);
 }
 
@@ -2061,17 +2073,27 @@ function _lsKey(name) {
     return LS_FEED_PREFIX + name.replace(/\s+/g, "_");
 }
 
+// Feed items come from third parties (rss2json, user-added feeds), so only
+// keep ones whose link is a real http(s) URL — never javascript:, data:, etc.,
+// and never a missing link that would resolve to a page on this site.
+function hasSafeLink(item) {
+    return !!item && typeof item.link === "string" && /^https?:\/\//i.test(item.link.trim());
+}
+
 function getStoredFeed(name) {
     try {
-        const raw = localStorage.getItem(_lsKey(name));
-        return raw ? JSON.parse(raw) : null; // { ts, items } or null
+        const raw    = localStorage.getItem(_lsKey(name));
+        const stored = raw ? JSON.parse(raw) : null; // { ts, items } or null
+        if (stored && Array.isArray(stored.items)) stored.items = stored.items.filter(hasSafeLink);
+        else if (stored) stored.items = [];
+        return stored;
     } catch { return null; }
 }
 
 function storeAndMergeFeed(name, incoming) {
     const existing = (getStoredFeed(name) || {}).items || [];
     const seen     = new Set();
-    const merged   = [...incoming, ...existing].filter(item => {
+    const merged   = [...(Array.isArray(incoming) ? incoming : []).filter(hasSafeLink), ...existing].filter(item => {
         const key = item.link || item.guid || item.title;
         if (seen.has(key)) return false;
         seen.add(key);
@@ -2533,7 +2555,13 @@ function openManageRssModal() {
     const close = () => { overlay.remove(); document.removeEventListener("keydown", onKeyDown); };
     document.getElementById("manageRssClose").onclick = close;
 
-    const onKeyDown = e => { if (e.key === "Escape") close(); };
+    // Escape belongs to the Add/Edit feed form while it's open on top. That
+    // form handles Escape first and removes itself, so also check the target.
+    const onKeyDown = e => {
+        if (e.key !== "Escape") return;
+        if (document.getElementById("addRssModal") || e.target.closest?.("#addRssModal")) return;
+        close();
+    };
     document.addEventListener("keydown", onKeyDown);
 }
 
