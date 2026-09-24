@@ -369,6 +369,14 @@ function isUnlocked(type, name) {
     return prefs[`${type}|${name}`] === true;
 }
 
+function setUnlocked(type, name, unlocked) {
+    const prefs = loadOpenPrefs();
+    const key = `${type}|${name}`;
+    if (unlocked) prefs[key] = true;
+    else delete prefs[key];
+    saveOpenPrefs(prefs);
+}
+
 function toggleUnlocked(type, name) {
     const prefs = loadOpenPrefs();
     const key = `${type}|${name}`;
@@ -420,10 +428,28 @@ function saveOrder(type, nameArray) {
     } catch {}
 }
 
+// Renames (or, with newName null, removes) a tool in every type's saved order.
+function renameInOrder(oldName, newName) {
+    try {
+        const saved = JSON.parse(localStorage.getItem(ORDER_KEY) || "{}");
+        Object.keys(saved).forEach(type => {
+            if (!Array.isArray(saved[type])) return;
+            saved[type] = saved[type]
+                .map(n => n === oldName ? newName : n)
+                .filter(n => n !== null && n !== undefined);
+        });
+        localStorage.setItem(ORDER_KEY, JSON.stringify(saved));
+    } catch {}
+}
+
 // Returns sources[type] + custom tools, reordered to match saved order
 function getOrderedSources(type) {
     const native  = sources[type] || [];
-    const custom  = getCustomToolsForType(type).map(t => ({ ...t, custom: true }));
+    // A custom tool named like a built-in one (e.g. from an older config)
+    // would share its order/hidden/unlock state, so the built-in wins.
+    const custom  = getCustomToolsForType(type)
+        .filter(t => !isBuiltInToolName(type, t.name))
+        .map(t => ({ ...t, custom: true }));
     const list    = [...native, ...custom];
     const saved   = loadOrder(type);
     if (!saved) return list;
@@ -581,7 +607,7 @@ async function renderLinks(raw) {
         const links = [];
         for (const ioc of iocs) {
             const p       = await prepareData(ioc, type, src);
-            const rawLink = src.url.replace("{data}", p);
+            const rawLink = src.url.replaceAll("{data}", p);
             const lower   = rawLink.toLowerCase();
             if (!lower.startsWith("https://") && !lower.startsWith("http://")) {
                 console.warn("Blocked non-http URL:", rawLink);
@@ -731,10 +757,17 @@ async function renderLinks(raw) {
             delayOnTouchOnly: false,
             touchStartThreshold: 4,
             onEnd() {
-                const names = [...results.querySelectorAll(".card-wrapper[data-name]")]
+                const visible = [...results.querySelectorAll(".card-wrapper[data-name]")]
                     .map(el => el.dataset.name)
                     .filter(Boolean);
-                saveOrder(type, names);
+                // Hidden tools aren't on screen: keep them in their previous
+                // slots and fill the other slots with the new visible order,
+                // so un-hiding a tool puts it back where it was.
+                const visibleSet = new Set(visible);
+                const queue      = [...visible];
+                const names      = getOrderedSources(type).map(s => s.name)
+                    .map(n => visibleSet.has(n) ? queue.shift() : n);
+                saveOrder(type, [...names, ...queue]);
             }
         });
     }
@@ -781,8 +814,36 @@ function fileToIconData(file) {
     });
 }
 
+function isBuiltInToolName(type, name) {
+    return (sources[type] || []).some(s => s.name.toLowerCase() === String(name).toLowerCase());
+}
+
+// Keeps only well-formed custom tools, so a hand-edited or old config file
+// can't break lookups: { <known type>: [{ name, url, icon? }, ...] }.
+function sanitizeCustomTools(data) {
+    const clean = {};
+    if (!data || typeof data !== "object" || Array.isArray(data)) return clean;
+    Object.keys(sources).forEach(type => {
+        if (!Array.isArray(data[type])) return;
+        const seen = new Set();
+        clean[type] = data[type].filter(t => {
+            if (!t || typeof t.name !== "string" || typeof t.url !== "string") return false;
+            const name = t.name.trim();
+            const key  = name.toLowerCase();
+            if (!name || seen.has(key) || !/^https?:\/\//i.test(t.url)) return false;
+            seen.add(key);
+            return true;
+        }).map(t => {
+            const tool = { name: t.name.trim(), url: t.url };
+            if (isValidIconData(t.icon)) tool.icon = t.icon;
+            return tool;
+        });
+    });
+    return clean;
+}
+
 function loadCustomTools() {
-    try { return JSON.parse(localStorage.getItem(CUSTOM_TOOLS_KEY) || "{}"); } catch { return {}; }
+    try { return sanitizeCustomTools(JSON.parse(localStorage.getItem(CUSTOM_TOOLS_KEY) || "{}")); } catch { return {}; }
 }
 
 function saveCustomTools(data) {
@@ -801,13 +862,21 @@ function addCustomTool(type, tool) {
     saveCustomTools(all);
 }
 
-// Fully removes a custom tool: its entries and its per-type "hidden" flags,
-// so a new tool later created with the same name doesn't inherit them.
+// Resets a tool's per-type hidden and unlocked flags.
+function clearToolState(type, name) {
+    setHidden(type, name, false);
+    setUnlocked(type, name, false);
+}
+
+// Fully removes a custom tool: its entries, its per-type hidden/unlocked
+// flags and its saved position, so a new tool later created with the same
+// name doesn't inherit any of them.
 function removeCustomTool(name, types) {
     types.forEach(t => {
         deleteCustomTool(t, name);
-        setHidden(t, name, false);
+        clearToolState(t, name);
     });
+    renameInOrder(name, null);
 }
 
 function deleteCustomTool(type, name) {
@@ -938,23 +1007,35 @@ function openCustomToolModal(type, onSaved, editSource) {
         // doesn't leave the original tool deleted. The tool being edited
         // doesn't count as its own duplicate.
         const isSelf = e => editSource && e.name.toLowerCase() === editSource.name.toLowerCase();
-        const dupeIn = selTypes.filter(t => getCustomToolsForType(t).some(e => e.name.toLowerCase() === name.toLowerCase() && !isSelf(e)));
+        const dupeIn = selTypes.filter(t =>
+            isBuiltInToolName(t, name) ||
+            getCustomToolsForType(t).some(e => e.name.toLowerCase() === name.toLowerCase() && !isSelf(e)));
         if (dupeIn.length) {
             showModalError(errEl, `A tool named "${name}" already exists for ${dupeIn.join(", ")}.`); return;
         }
 
+        // Hidden/unlocked flags are keyed by name. Remember them for the
+        // types the tool keeps, reset everything, then re-apply — so a
+        // rename carries them over, dropped types don't leave stale flags,
+        // and a brand-new tool never inherits flags from a deleted one.
+        const kept = {};
         if (editSource) {
-            editSource.types.forEach(t => deleteCustomTool(t, editSource.name));
-            // Don't leave stale "hidden" flags behind for types that were
-            // dropped, or for the old name after a rename.
-            editSource.types
-                .filter(t => !selTypes.includes(t) || editSource.name !== name)
-                .forEach(t => setHidden(t, editSource.name, false));
-        } else {
-            // A new tool always starts visible, even if an older tool with
-            // the same name was hidden before being deleted.
-            selTypes.forEach(t => setHidden(t, name, false));
+            editSource.types.filter(t => selTypes.includes(t)).forEach(t => {
+                kept[t] = { hidden: isHidden(t, editSource.name), unlocked: isUnlocked(t, editSource.name) };
+            });
+            editSource.types.forEach(t => {
+                deleteCustomTool(t, editSource.name);
+                clearToolState(t, editSource.name);
+            });
+            if (editSource.name !== name) renameInOrder(editSource.name, name);
         }
+        selTypes.forEach(t => {
+            clearToolState(t, name);
+            if (kept[t]) {
+                setHidden(t, name, kept[t].hidden);
+                setUnlocked(t, name, kept[t].unlocked);
+            }
+        });
 
         selTypes.forEach(t => addCustomTool(t, iconData ? { name, url, icon: iconData } : { name, url }));
         closeModal();
@@ -1153,6 +1234,18 @@ document.getElementById("exportConfig").onclick = () => {
     showToast("Config exported!");
 };
 
+// Basic shape check for imported settings other than custom tools/feeds.
+function isValidConfigValue(key, value) {
+    const isPlainObject = v => v && typeof v === "object" && !Array.isArray(v);
+    switch (key) {
+        case ORDER_KEY:       return isPlainObject(value) && Object.values(value).every(a => Array.isArray(a) && a.every(n => typeof n === "string"));
+        case OPEN_PREF_KEY:
+        case HIDDEN_KEY:      return isPlainObject(value) && Object.values(value).every(v => typeof v === "boolean");
+        case NEWS_HIDDEN_KEY: return Array.isArray(value) && value.every(n => typeof n === "string");
+        default:              return typeof value === "string" || typeof value === "number";
+    }
+}
+
 // ── Import ──
 document.getElementById("importConfigInput").onchange = (e) => {
     const file = e.target.files[0];
@@ -1161,12 +1254,18 @@ document.getElementById("importConfigInput").onchange = (e) => {
     reader.onload = (ev) => {
         try {
             const config = JSON.parse(ev.target.result);
+            if (!config || typeof config !== "object" || Array.isArray(config)) throw new Error("shape");
             let applied  = 0;
             CONFIG_KEYS.forEach(k => {
-                if (config[k] !== undefined && config[k] !== null) {
-                    localStorage.setItem(k, JSON.stringify(config[k]));
-                    applied++;
-                }
+                let value = config[k];
+                if (value === undefined || value === null) return;
+                // Clean up the parts that can break the page if malformed;
+                // skip any other key whose basic shape is wrong.
+                if (k === CUSTOM_TOOLS_KEY)   value = sanitizeCustomTools(value);
+                else if (k === CUSTOM_RSS_KEY) value = sanitizeCustomSources(value);
+                else if (!isValidConfigValue(k, value)) return;
+                localStorage.setItem(k, JSON.stringify(value));
+                applied++;
             });
             if (applied === 0) { showToast("Nothing to import."); return; }
             document.getElementById("settingsDropdown").style.display = "none";
@@ -1247,7 +1346,7 @@ openUnlocked.onclick = async () => {
 
         for (const ioc of iocs) {
             const p       = await prepareData(ioc, t, src);
-            const rawLink = src.url.replace("{data}", p);
+            const rawLink = src.url.replaceAll("{data}", p);
             const lower   = rawLink.toLowerCase();
             if (!lower.startsWith("https://") && !lower.startsWith("http://")) {
                 console.warn("Blocked non-http URL for", src.name);
@@ -1822,8 +1921,28 @@ const TICKER_MODE_KEY = "tickerMode";
 let _tickerMode     = localStorage.getItem(TICKER_MODE_KEY) || "card";
 
 let _customSources = [];
+// "All" is the news filter that shows every source, not a feed name.
+const RESERVED_FEED_NAMES = ["All"];
+
+// Keeps only well-formed custom feeds, so a hand-edited or old config file
+// can't break the news section: [{ name, rss }, ...] with unique names that
+// don't clash with built-in or reserved ones.
+function sanitizeCustomSources(data) {
+    if (!Array.isArray(data)) return [];
+    const taken = [...RESERVED_FEED_NAMES, ...NEWS_SOURCES.map(s => s.name)];
+    const clean = [];
+    data.forEach(f => {
+        if (!f || typeof f.name !== "string" || typeof f.rss !== "string") return;
+        const name = f.name.trim();
+        if (!name || !/^https?:\/\//i.test(f.rss)) return;
+        if ([...taken, ...clean.map(c => c.name)].some(n => sameSourceName(n, name))) return;
+        clean.push({ name, rss: f.rss });
+    });
+    return clean;
+}
+
 (function loadCustomSources() {
-    try { _customSources = JSON.parse(localStorage.getItem(CUSTOM_RSS_KEY) || "[]"); }
+    try { _customSources = sanitizeCustomSources(JSON.parse(localStorage.getItem(CUSTOM_RSS_KEY) || "[]")); }
     catch { _customSources = []; }
 })();
 
@@ -2189,6 +2308,9 @@ function openAddRssModal(onSaved, editSource) {
         if (!name) { showToast("Enter a name for the feed."); return; }
         if (!rss || !/^https?:\/\//i.test(rss)) { showToast("Enter a valid RSS URL."); return; }
 
+        if (RESERVED_FEED_NAMES.some(n => sameSourceName(n, name))) {
+            showToast(`"${name}" is reserved. Choose another name.`); return;
+        }
         const others = [...NEWS_SOURCES, ..._customSources].filter(s => !editSource || s.name !== editSource.name);
         if (others.some(s => sameSourceName(s.name, name))) {
             showToast("A source with that name already exists."); return;
