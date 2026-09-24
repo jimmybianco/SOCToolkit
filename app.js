@@ -663,8 +663,7 @@ async function renderLinks(raw) {
             delBtn.onclick     = (e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                const allTypes = ["ipv4","ipv6","domain","url","hash","email","text"];
-                allTypes.forEach(t => deleteCustomTool(t, src.name));
+                removeCustomTool(src.name, ["ipv4","ipv6","domain","url","hash","email","text"]);
                 renderLinks(inputData.value.trim());
                 showToast(`"${src.name}" removed.`);
             };
@@ -802,6 +801,15 @@ function addCustomTool(type, tool) {
     saveCustomTools(all);
 }
 
+// Fully removes a custom tool: its entries and its per-type "hidden" flags,
+// so a new tool later created with the same name doesn't inherit them.
+function removeCustomTool(name, types) {
+    types.forEach(t => {
+        deleteCustomTool(t, name);
+        setHidden(t, name, false);
+    });
+}
+
 function deleteCustomTool(type, name) {
     const all = loadCustomTools();
     if (!all[type]) return;
@@ -926,11 +934,26 @@ function openCustomToolModal(type, onSaved, editSource) {
         if (!url.startsWith("https://") && !url.startsWith("http://")) { showModalError(errEl, "URL must start with http:// or https://"); return; }
         if (!selTypes.length) { showModalError(errEl, "Select at least one IoC type."); return; }
 
-        if (editSource) editSource.types.forEach(t => deleteCustomTool(t, editSource.name));
-
-        const dupeIn = selTypes.filter(t => getCustomToolsForType(t).some(e => e.name.toLowerCase() === name.toLowerCase()));
+        // Check for duplicates before touching anything, so a failed edit
+        // doesn't leave the original tool deleted. The tool being edited
+        // doesn't count as its own duplicate.
+        const isSelf = e => editSource && e.name.toLowerCase() === editSource.name.toLowerCase();
+        const dupeIn = selTypes.filter(t => getCustomToolsForType(t).some(e => e.name.toLowerCase() === name.toLowerCase() && !isSelf(e)));
         if (dupeIn.length) {
             showModalError(errEl, `A tool named "${name}" already exists for ${dupeIn.join(", ")}.`); return;
+        }
+
+        if (editSource) {
+            editSource.types.forEach(t => deleteCustomTool(t, editSource.name));
+            // Don't leave stale "hidden" flags behind for types that were
+            // dropped, or for the old name after a rename.
+            editSource.types
+                .filter(t => !selTypes.includes(t) || editSource.name !== name)
+                .forEach(t => setHidden(t, editSource.name, false));
+        } else {
+            // A new tool always starts visible, even if an older tool with
+            // the same name was hidden before being deleted.
+            selTypes.forEach(t => setHidden(t, name, false));
         }
 
         selTypes.forEach(t => addCustomTool(t, iconData ? { name, url, icon: iconData } : { name, url }));
@@ -1059,7 +1082,7 @@ function openManageToolsModal() {
                 delBtn.className   = "manage-tools-action-btn";
                 delBtn.title       = "Delete this tool";
                 delBtn.textContent = "🗑️";
-                delBtn.onclick     = () => { typesArr.forEach(t => deleteCustomTool(t, name)); renderRows(); };
+                delBtn.onclick     = () => { removeCustomTool(name, typesArr); renderRows(); };
                 actionsCell.appendChild(delBtn);
             }
             row.appendChild(actionsCell);
