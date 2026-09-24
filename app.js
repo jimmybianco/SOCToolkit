@@ -870,7 +870,8 @@ function isBuiltInToolName(name) {
 // custom tool of the same type is renamed ("X (custom)") rather than
 // dropped — consistently across types, since the built-in set is the same
 // for every type — so it stays
-// visible and can be edited or deleted. Renames are reported in `renamed`.
+// visible and can be edited or deleted. Renames are reported in `renamed`
+// as { type, from, to }.
 function sanitizeCustomTools(data, renamed = []) {
     const clean = {};
     if (!data || typeof data !== "object" || Array.isArray(data)) return clean;
@@ -884,7 +885,7 @@ function sanitizeCustomTools(data, renamed = []) {
             if (!original || !/^https?:\/\//i.test(t.url)) return;
             const name = uniqueName(original, n => taken.has(n.toLowerCase()),
                 (b, i) => i === 1 ? `${b} (custom)` : `${b} (custom ${i})`);
-            if (name !== original) renamed.push(`"${original}" → "${name}"`);
+            if (name !== original) renamed.push({ type, from: original, to: name });
             taken.add(name.toLowerCase());
             const tool = { name, url: t.url };
             if (isValidIconData(t.icon)) tool.icon = t.icon;
@@ -912,7 +913,23 @@ function saveCustomTools(data) {
     const renamed = [];
     const clean   = sanitizeCustomTools(raw, renamed);
     if (JSON.stringify(clean) !== JSON.stringify(raw)) saveCustomTools(clean);
-    const unique = [...new Set(renamed)];
+
+    // Carry each renamed tool's hidden/unlocked state and position over to
+    // its new name — but only where that state was the custom tool's own:
+    // not where a built-in of the same type has the old name (that state was
+    // shared and stays with the built-in), and not where another custom tool
+    // still uses the old name.
+    renamed.forEach(({ type, from, to }) => {
+        const builtInHere = (sources[type] || []).some(s => s.name.toLowerCase() === from.toLowerCase());
+        const stillUsed   = (clean[type] || []).some(t => t.name === from);
+        if (builtInHere || stillUsed) return;
+        if (isHidden(type, from))   { setHidden(type, to, true);   setHidden(type, from, false); }
+        if (isUnlocked(type, from)) { setUnlocked(type, to, true); setUnlocked(type, from, false); }
+        const order = loadOrder(type);
+        if (order && order.includes(from)) saveOrder(type, order.map(n => n === from ? to : n));
+    });
+
+    const unique = [...new Set(renamed.map(r => `"${r.from}" → "${r.to}"`))];
     if (unique.length) _startupNotices.push(`Renamed custom tool(s) with a duplicate name: ${unique.join(", ")}`);
 })();
 
