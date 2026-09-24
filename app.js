@@ -1938,7 +1938,7 @@ function buildNewsAdSlot() {
 
     const text = document.createElement("span");
     text.className = "news-ad-text";
-    text.innerHTML = "Want to reach cybersecurity professionals? Contact us at <strong>contact@soctoolkit.com</strong>";
+    text.innerHTML = "Want your brand in front of cybersecurity professionals? Contact us at <strong>contact@soctoolkit.com</strong>";
     a.appendChild(text);
 
     return a;
