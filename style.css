@@ -1510,35 +1510,28 @@ body.modern #newsTicker .ticker-item:hover {
 
 .ticker-ad-item {
     border-style: dashed;
-    border-color: rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.25);
-    cursor: default;
-    position: relative;
-    overflow: hidden;
+    border-color: rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.35);
+    justify-content: center;
+    gap: 8px;
+    /* Roughly a real card's height (thumb + body) so the row stays even. */
+    height: 151px;
+    padding: 12px;
+    box-sizing: border-box;
+    white-space: normal;
+    text-align: center;
 }
 
 .ticker-ad-label {
-    padding: 6px 9px 0;
-    font-size: 0.62em;
+    font-size: 0.7em;
     letter-spacing: 0.06em;
     text-transform: uppercase;
-    color: rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.5);
+    color: rgb(var(--accent-r), var(--accent-g), var(--accent-b));
 }
 
-.ticker-ad-item ins.adsbygoogle {
-    display: block;
-    width: 100%;
-    /* Matches a real news card's natural height (thumb + body text),
-       so the ad slot doesn't look shorter than its neighbors in the row.
-       !important because AdSense's "auto" format script injects its own
-       inline size/position once it resolves the (currently placeholder)
-       ad slot — without this it can override our box and push into or
-       cover neighboring cards. */
-    height: 120px !important;
-    max-height: 120px !important;
-    max-width: 100% !important;
-    overflow: hidden !important;
-    position: relative !important;
-    margin: 4px 0 8px;
+.ticker-ad-text {
+    font-size: 0.78em;
+    line-height: 1.35;
+    opacity: 0.8;
 }
 
 body.modern .ticker-ad-item {
@@ -1849,7 +1842,9 @@ body.modern .news-filter-select {
     gap: 6px;
     padding: 10px 16px;
     margin-bottom: 8px;
-    min-height: 100px;
+    justify-content: center;
+    color: inherit;
+    text-decoration: none;
     border: 1px dashed rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.2);
     border-radius: 6px;
     background: rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.03);
@@ -1861,6 +1856,15 @@ body.modern .news-filter-select {
     letter-spacing: 0.06em;
     text-transform: uppercase;
     opacity: 0.4;
+}
+
+.news-ad-slot:hover {
+    border-color: rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.5);
+}
+
+.news-ad-text {
+    font-size: 0.9em;
+    opacity: 0.85;
 }
 
 /* Modern theme */
@@ -1960,11 +1964,7 @@ body.modern .news-ad-label {
 
     .ticker-thumb { height: 72px; }
 
-    /* !important to beat the desktop rule's !important cap. */
-    .ticker-ad-item ins.adsbygoogle {
-        height: 72px !important;
-        max-height: 72px !important;
-    }
+    .ticker-ad-item { height: 124px; }
 
     /* Compact ticker: tighter text so it fits the 54px bar. */
     #newsTicker[data-mode="compact"] .ticker-track {

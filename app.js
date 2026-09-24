@@ -1226,12 +1226,7 @@ function finishBoot() {
     document.getElementById("bootScreen").style.display = "none";
     appEl.style.display = "block";
     queryInput.focus();
-    // News (and its AdSense slots) must wait for window "load": the ads are
-    // pushed as the feed renders, and if that happens before adsbygoogle.js
-    // has loaded, AdSense's "auto" sizing overrides our CSS caps and the ad
-    // slot blows up in size.
-    if (document.readyState === "complete") loadNews();
-    else window.addEventListener("load", () => loadNews(), { once: true });
+    loadNews();
 }
 
 // Only play the boot animation on the first visit of the (local) day.
@@ -1645,10 +1640,8 @@ const NEWS_SOURCES = [
 const RSS2JSON       = "https://api.rss2json.com/v1/api.json?rss_url=";
 const NEWS_TTL_MS    = 5 * 60 * 60 * 1000; // 5 hours
 
-// AdSense: conservative in-feed placement. NEWS_AD_SLOT is a placeholder —
-// replace with a real ad unit ID from the AdSense dashboard before this can serve ads.
-const NEWS_AD_CLIENT = "ca-pub-8782794139506972";
-const NEWS_AD_SLOT    = "0000000000";
+// "Advertise here" slots: a mailto link in place of real ads.
+const ADVERTISE_MAILTO = "mailto:contact@soctoolkit.com?subject=Advertising%20on%20SOC%20Toolkit";
 const NEWS_AD_EVERY   = 8;
 const NEWS_AD_MAX     = 2;
 const TICKER_AD_EVERY = 6; // card view only; hidden in compact via CSS
@@ -1934,48 +1927,40 @@ function renderNewsUI() {
 }
 
 function buildNewsAdSlot() {
-    const wrap  = document.createElement("div");
-    wrap.className = "news-ad-slot";
+    const a = document.createElement("a");
+    a.className = "news-ad-slot";
+    a.href      = ADVERTISE_MAILTO;
 
     const label = document.createElement("span");
     label.className   = "news-ad-label";
-    label.textContent = "Advertisement";
-    wrap.appendChild(label);
+    label.textContent = "Advertise here";
+    a.appendChild(label);
 
-    const ins = document.createElement("ins");
-    ins.className = "adsbygoogle";
-    ins.style.display = "block";
-    ins.setAttribute("data-ad-client", NEWS_AD_CLIENT);
-    ins.setAttribute("data-ad-slot", NEWS_AD_SLOT);
-    ins.setAttribute("data-ad-format", "auto");
-    ins.setAttribute("data-full-width-responsive", "true");
-    wrap.appendChild(ins);
+    const text = document.createElement("span");
+    text.className = "news-ad-text";
+    text.innerHTML = "Want to reach cybersecurity professionals? Contact us at <strong>contact@soctoolkit.com</strong>";
+    a.appendChild(text);
 
-    try { (window.adsbygoogle = window.adsbygoogle || []).push({}); } catch {}
-
-    return wrap;
+    return a;
 }
 
 function buildTickerAdItem() {
-    const wrap = document.createElement("div");
-    wrap.className = "ticker-item ticker-ad-item";
+    const a = document.createElement("a");
+    a.className = "ticker-item ticker-ad-item";
+    a.href      = ADVERTISE_MAILTO;
+    a.addEventListener("click", e => e.stopPropagation());
 
     const label = document.createElement("span");
     label.className   = "ticker-ad-label";
-    label.textContent = "Ad";
-    wrap.appendChild(label);
+    label.textContent = "Advertise here";
+    a.appendChild(label);
 
-    const ins = document.createElement("ins");
-    ins.className = "adsbygoogle";
-    ins.setAttribute("data-ad-client", NEWS_AD_CLIENT);
-    ins.setAttribute("data-ad-slot", NEWS_AD_SLOT);
-    ins.setAttribute("data-ad-format", "auto");
-    ins.setAttribute("data-full-width-responsive", "true");
-    wrap.appendChild(ins);
+    const text = document.createElement("span");
+    text.className   = "ticker-ad-text";
+    text.textContent = "Want your brand in front of cybersecurity professionals? Contact us";
+    a.appendChild(text);
 
-    try { (window.adsbygoogle = window.adsbygoogle || []).push({}); } catch {}
-
-    return wrap;
+    return a;
 }
 
 function removeCustomSource(name) {
@@ -2170,11 +2155,11 @@ function updateTicker(items) {
 
     content.innerHTML = "";
 
-    let adAdded = false;
-    const makeSet = (withAd) => {
+    const makeSet = () => {
         const frag = document.createDocumentFragment();
+        let adAdded = false;
         withImg.forEach((item, idx) => {
-            if (withAd && !adAdded && idx > 0 && idx % TICKER_AD_EVERY === 0) {
+            if (!adAdded && idx > 0 && idx % TICKER_AD_EVERY === 0) {
                 frag.appendChild(buildTickerAdItem());
                 adAdded = true;
             }
@@ -2213,8 +2198,8 @@ function updateTicker(items) {
         return frag;
     };
 
-    content.appendChild(makeSet(true));
-    content.appendChild(makeSet(false)); // duplicate for seamless loop; no second ad copy
+    content.appendChild(makeSet());
+    content.appendChild(makeSet()); // identical duplicate for a seamless loop
 
     _lastTickerItems = withImg;
     _applyTickerSpeed();
