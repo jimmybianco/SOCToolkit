@@ -846,7 +846,9 @@ function openCustomToolModal(type, onSaved, editSource) {
                 <input id="ctIconFile" type="file" accept="image/png,image/jpeg,image/gif,image/webp,image/svg+xml,image/x-icon,.ico" hidden>
             </div>
         </div>
-        <label class="modal-label">IoC type(s)
+        <div class="modal-label">IoC type(s)
+            <!-- A <div>, not a <label>: nesting the checkbox labels inside
+                 another label made one click toggle two checkboxes. -->
             <div class="modal-checkbox-group" id="ctTypeGroup">
                 ${types.map(t => `
                     <label class="modal-checkbox-item">
@@ -855,7 +857,7 @@ function openCustomToolModal(type, onSaved, editSource) {
                     </label>
                 `).join("")}
             </div>
-        </label>
+        </div>
         <div id="ctError" class="modal-error" style="display:none"></div>
         <div class="modal-actions">
             <button id="ctCancel" class="modal-btn modal-btn-cancel">Cancel</button>
