@@ -445,11 +445,9 @@ function renameInOrder(oldName, newName) {
 // Returns sources[type] + custom tools, reordered to match saved order
 function getOrderedSources(type) {
     const native  = sources[type] || [];
-    // A custom tool named like a built-in one (e.g. from an older config)
-    // would share its order/hidden/unlock state, so the built-in wins.
-    const custom  = getCustomToolsForType(type)
-        .filter(t => !isBuiltInToolName(type, t.name))
-        .map(t => ({ ...t, custom: true }));
+    // Clashing names are renamed by sanitizeCustomTools, so custom tools
+    // never share a built-in tool's order/hidden/unlock state.
+    const custom  = getCustomToolsForType(type).map(t => ({ ...t, custom: true }));
     const list    = [...native, ...custom];
     const saved   = loadOrder(type);
     if (!saved) return list;
@@ -607,7 +605,9 @@ async function renderLinks(raw) {
         const links = [];
         for (const ioc of iocs) {
             const p       = await prepareData(ioc, type, src);
-            const rawLink = src.url.replaceAll("{data}", p);
+            // Function form: a "$&" / "$'" in the value must be inserted
+            // literally, not treated as a replacement pattern.
+            const rawLink = src.url.replaceAll("{data}", () => p);
             const lower   = rawLink.toLowerCase();
             if (!lower.startsWith("https://") && !lower.startsWith("http://")) {
                 console.warn("Blocked non-http URL:", rawLink);
@@ -648,7 +648,8 @@ async function renderLinks(raw) {
         // Custom tools use the icon the user uploaded, else the tool site's
         // own /favicon.ico. Anything that fails falls back to a generic icon.
         if (src.custom) {
-            img.src = isValidIconData(src.icon) ? src.icon : (domain ? `https://${domain}/favicon.ico` : GENERIC_TOOL_ICON);
+            const iconHost = toolIconHost(src.url);
+            img.src = isValidIconData(src.icon) ? src.icon : (iconHost ? `https://${iconHost}/favicon.ico` : GENERIC_TOOL_ICON);
         } else {
             img.src = `icons/${domain}.png`;
         }
@@ -784,6 +785,16 @@ const GENERIC_TOOL_ICON = "data:image/svg+xml," + encodeURIComponent(
 
 const CUSTOM_ICON_SIZE = 64;
 
+// Host to fetch a custom tool's favicon from, taken from its URL *template*
+// (never the filled-in link). If {data} is part of the host, e.g.
+// "https://{data}/", the host would be the indicator under investigation —
+// fetching from it would tip off the attacker — so return "" (generic icon).
+function toolIconHost(template) {
+    const authority = (/^https?:\/\/([^\/?#]*)/i.exec(template || "") || [])[1] || "";
+    if (!authority || authority.includes("{data}")) return "";
+    try { return new URL(template.replaceAll("{data}", "x")).hostname; } catch { return ""; }
+}
+
 // Custom tool icons are stored (and exported/imported) as image data URLs.
 // Only accept those, so an edited config file can't point <img> elsewhere.
 function isValidIconData(icon) {
@@ -814,29 +825,45 @@ function fileToIconData(file) {
     });
 }
 
+// Messages about data fixed up at load time, shown once the app is visible.
+const _startupNotices = [];
+
+// `base` if free, else the first free variant(base, 1), variant(base, 2), …
+function uniqueName(base, isTaken, variant) {
+    if (!isTaken(base)) return base;
+    for (let i = 1; ; i++) {
+        const candidate = variant(base, i);
+        if (!isTaken(candidate)) return candidate;
+    }
+}
+
 function isBuiltInToolName(type, name) {
     return (sources[type] || []).some(s => s.name.toLowerCase() === String(name).toLowerCase());
 }
 
 // Keeps only well-formed custom tools, so a hand-edited or old config file
 // can't break lookups: { <known type>: [{ name, url, icon? }, ...] }.
-function sanitizeCustomTools(data) {
+// A tool whose name clashes with a built-in tool or another custom tool of
+// the same type is renamed ("X (custom)") rather than dropped, so it stays
+// visible and can be edited or deleted. Renames are reported in `renamed`.
+function sanitizeCustomTools(data, renamed = []) {
     const clean = {};
     if (!data || typeof data !== "object" || Array.isArray(data)) return clean;
     Object.keys(sources).forEach(type => {
         if (!Array.isArray(data[type])) return;
-        const seen = new Set();
-        clean[type] = data[type].filter(t => {
-            if (!t || typeof t.name !== "string" || typeof t.url !== "string") return false;
-            const name = t.name.trim();
-            const key  = name.toLowerCase();
-            if (!name || seen.has(key) || !/^https?:\/\//i.test(t.url)) return false;
-            seen.add(key);
-            return true;
-        }).map(t => {
-            const tool = { name: t.name.trim(), url: t.url };
+        const taken = new Set((sources[type] || []).map(s => s.name.toLowerCase()));
+        clean[type] = [];
+        data[type].forEach(t => {
+            if (!t || typeof t.name !== "string" || typeof t.url !== "string") return;
+            const original = t.name.trim();
+            if (!original || !/^https?:\/\//i.test(t.url)) return;
+            const name = uniqueName(original, n => taken.has(n.toLowerCase()),
+                (b, i) => i === 1 ? `${b} (custom)` : `${b} (custom ${i})`);
+            if (name !== original) renamed.push(`"${original}" → "${name}"`);
+            taken.add(name.toLowerCase());
+            const tool = { name, url: t.url };
             if (isValidIconData(t.icon)) tool.icon = t.icon;
-            return tool;
+            clean[type].push(tool);
         });
     });
     return clean;
@@ -849,6 +876,20 @@ function loadCustomTools() {
 function saveCustomTools(data) {
     try { localStorage.setItem(CUSTOM_TOOLS_KEY, JSON.stringify(data)); } catch {}
 }
+
+// Persist the cleaned-up custom tools once at startup, so renamed tools keep
+// their new name (and the user is told about it) instead of being silently
+// renamed on every read.
+(function migrateCustomTools() {
+    let raw = null;
+    try { raw = JSON.parse(localStorage.getItem(CUSTOM_TOOLS_KEY) || "null"); } catch {}
+    if (raw === null) return;
+    const renamed = [];
+    const clean   = sanitizeCustomTools(raw, renamed);
+    if (JSON.stringify(clean) !== JSON.stringify(raw)) saveCustomTools(clean);
+    const unique = [...new Set(renamed)];
+    if (unique.length) _startupNotices.push(`Renamed custom tool(s) with a duplicate name: ${unique.join(", ")}`);
+})();
 
 function getCustomToolsForType(type) {
     const all = loadCustomTools();
@@ -957,8 +998,7 @@ function openCustomToolModal(type, onSaved, editSource) {
     const iconRemove  = document.getElementById("ctIconRemove");
     const iconFile    = document.getElementById("ctIconFile");
     const refreshIconPreview = () => {
-        let host = "";
-        try { host = new URL(document.getElementById("ctUrl").value.trim().replaceAll("{data}", "x")).hostname; } catch {}
+        const host = toolIconHost(document.getElementById("ctUrl").value.trim());
         iconPreview.onerror = () => { iconPreview.onerror = null; iconPreview.src = GENERIC_TOOL_ICON; };
         iconPreview.src = iconData || (host ? `https://${host}/favicon.ico` : GENERIC_TOOL_ICON);
         iconRemove.style.display = iconData ? "" : "none";
@@ -1346,7 +1386,9 @@ openUnlocked.onclick = async () => {
 
         for (const ioc of iocs) {
             const p       = await prepareData(ioc, t, src);
-            const rawLink = src.url.replaceAll("{data}", p);
+            // Function form: a "$&" / "$'" in the value must be inserted
+            // literally, not treated as a replacement pattern.
+            const rawLink = src.url.replaceAll("{data}", () => p);
             const lower   = rawLink.toLowerCase();
             if (!lower.startsWith("https://") && !lower.startsWith("http://")) {
                 console.warn("Blocked non-http URL for", src.name);
@@ -1439,6 +1481,7 @@ function finishBoot() {
     queryInput.focus();
     loadNews();
     if (!getCookieConsent()) showCookieBanner();
+    _startupNotices.forEach(msg => showToast(msg, 8000));
 }
 
 // Only play the boot animation on the first visit of the (local) day.
@@ -1925,25 +1968,36 @@ let _customSources = [];
 const RESERVED_FEED_NAMES = ["All"];
 
 // Keeps only well-formed custom feeds, so a hand-edited or old config file
-// can't break the news section: [{ name, rss }, ...] with unique names that
-// don't clash with built-in or reserved ones.
-function sanitizeCustomSources(data) {
+// can't break the news section: [{ name, rss }, ...]. A feed whose name
+// clashes with a built-in, reserved ("All") or earlier custom feed name is
+// renamed ("X (2)") rather than dropped. Renames are reported in `renamed`.
+function sanitizeCustomSources(data, renamed = []) {
     if (!Array.isArray(data)) return [];
-    const taken = [...RESERVED_FEED_NAMES, ...NEWS_SOURCES.map(s => s.name)];
-    const clean = [];
+    const taken   = [...RESERVED_FEED_NAMES, ...NEWS_SOURCES.map(s => s.name)];
+    const isTaken = n => taken.some(t => sameSourceName(t, n));
+    const clean   = [];
     data.forEach(f => {
         if (!f || typeof f.name !== "string" || typeof f.rss !== "string") return;
-        const name = f.name.trim();
-        if (!name || !/^https?:\/\//i.test(f.rss)) return;
-        if ([...taken, ...clean.map(c => c.name)].some(n => sameSourceName(n, name))) return;
+        const original = f.name.trim();
+        if (!original || !/^https?:\/\//i.test(f.rss)) return;
+        const name = uniqueName(original, isTaken, (b, i) => `${b} (${i + 1})`);
+        if (name !== original) renamed.push(`"${original}" → "${name}"`);
+        taken.push(name);
         clean.push({ name, rss: f.rss });
     });
     return clean;
 }
 
 (function loadCustomSources() {
-    try { _customSources = sanitizeCustomSources(JSON.parse(localStorage.getItem(CUSTOM_RSS_KEY) || "[]")); }
-    catch { _customSources = []; }
+    let raw = null;
+    try { raw = JSON.parse(localStorage.getItem(CUSTOM_RSS_KEY) || "[]"); } catch {}
+    const renamed = [];
+    _customSources = sanitizeCustomSources(raw, renamed);
+    // Persist renames once, and tell the user.
+    if (renamed.length) {
+        saveCustomSources();
+        _startupNotices.push(`Renamed custom feed(s) with a duplicate name: ${renamed.join(", ")}`);
+    }
 })();
 
 function saveCustomSources() {
