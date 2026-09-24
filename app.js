@@ -497,8 +497,15 @@ function setCopiableValue(containerId, label, value) {
     container.appendChild(span);
 }
 
+// Incremented on every lookup. renderLinks awaits while building cards, so a
+// second lookup (e.g. a double click) can start before the first finishes;
+// an older run stops as soon as it sees a newer one has started, instead of
+// appending its cards alongside the new ones.
+let _renderSeq = 0;
+
 async function renderLinks(raw) {
     if (!raw) return;
+    const seq = ++_renderSeq;
 
     const iocs = parseMultipleIoCs(raw);
     if (!iocs.length) return;
@@ -605,6 +612,7 @@ async function renderLinks(raw) {
         const links = [];
         for (const ioc of iocs) {
             const p       = await prepareData(ioc, type, src);
+            if (seq !== _renderSeq) return; // a newer lookup has taken over
             // Function form: a "$&" / "$'" in the value must be inserted
             // literally, not treated as a replacement pattern.
             const rawLink = src.url.replaceAll("{data}", () => p);
@@ -1047,11 +1055,19 @@ function openCustomToolModal(type, onSaved, editSource) {
         // doesn't leave the original tool deleted. The tool being edited
         // doesn't count as its own duplicate.
         const isSelf = e => editSource && e.name.toLowerCase() === editSource.name.toLowerCase();
-        const dupeIn = selTypes.filter(t =>
-            isBuiltInToolName(t, name) ||
-            getCustomToolsForType(t).some(e => e.name.toLowerCase() === name.toLowerCase() && !isSelf(e)));
+        const dupeIn = selTypes.filter(t => isBuiltInToolName(t, name));
         if (dupeIn.length) {
             showModalError(errEl, `A tool named "${name}" already exists for ${dupeIn.join(", ")}.`); return;
+        }
+        // A custom tool is one tool across all its IoC types, so its name must
+        // be unique among custom tools of *any* type (other than itself).
+        const customDupe = Object.values(loadCustomTools()).some(list =>
+            list.some(e => e.name.toLowerCase() === name.toLowerCase() && !isSelf(e)));
+        if (customDupe) {
+            showModalError(errEl, editSource
+                ? `A tool named "${name}" already exists.`
+                : `A tool named "${name}" already exists. Edit it to add more IoC types.`);
+            return;
         }
 
         // Hidden/unlocked flags are keyed by name. Remember them for the
@@ -2628,12 +2644,19 @@ function toggleTickerMode() {
     _applyTickerSpeed();
 }
 
+// Incremented on every loadNews call. Toggling several feeds reloads the news
+// each time; only the most recent load may update the feed and ticker, so a
+// slower, older load can't bring back a feed that was just hidden.
+let _newsLoadSeq = 0;
+
 async function loadNews(forceRefresh = false) {
+    const seq    = ++_newsLoadSeq;
     const active = getActiveSources();
     document.getElementById("newsFeed").innerHTML = `<p class="news-status">Loading news from ${active.length} sources…</p>`;
     renderNewsFilters();
 
     const settled = await Promise.allSettled(active.map(s => fetchFeed(s, forceRefresh)));
+    if (seq !== _newsLoadSeq) return; // a newer load has taken over
     _newsResults  = active.map((source, i) => {
         const r = settled[i];
         return r.status === "fulfilled" ? r.value : { source, items: [], ok: false };
