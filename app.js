@@ -617,10 +617,15 @@ async function renderLinks(raw) {
         a.className = "link-card";
 
         const img = document.createElement("img");
-        // Self-hosted icons (icons/<hostname>.png) so loading a card doesn't
-        // send the visitor's IP to Google's favicon service. Custom tools
-        // have no bundled icon and fall back to a generic one.
-        img.src = `icons/${domain}.png`;
+        // Built-in tools use self-hosted icons (icons/<hostname>.png) so a
+        // card never sends the visitor's IP to Google's favicon service.
+        // Custom tools use the icon the user uploaded, else the tool site's
+        // own /favicon.ico. Anything that fails falls back to a generic icon.
+        if (src.custom) {
+            img.src = isValidIconData(src.icon) ? src.icon : (domain ? `https://${domain}/favicon.ico` : GENERIC_TOOL_ICON);
+        } else {
+            img.src = `icons/${domain}.png`;
+        }
         img.onerror = () => { img.onerror = null; img.src = GENERIC_TOOL_ICON; };
         img.alt = src.name;
 
@@ -745,6 +750,38 @@ const GENERIC_TOOL_ICON = "data:image/svg+xml," + encodeURIComponent(
     '<circle cx="12" cy="12" r="9.5"/><path d="M2.5 12h19M12 2.5c2.8 2.8 2.8 16.2 0 19M12 2.5c-2.8 2.8-2.8 16.2 0 19"/></svg>'
 );
 
+const CUSTOM_ICON_SIZE = 64;
+
+// Custom tool icons are stored (and exported/imported) as image data URLs.
+// Only accept those, so an edited config file can't point <img> elsewhere.
+function isValidIconData(icon) {
+    return typeof icon === "string" && /^data:image\/(png|jpeg|gif|webp|svg\+xml|x-icon|vnd\.microsoft\.icon);/.test(icon);
+}
+
+// Downscale an uploaded image to a small square PNG so it stays light in
+// localStorage and in exported configs.
+function fileToIconData(file) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onerror = () => reject(new Error("read"));
+        reader.onload = () => {
+            const img = new Image();
+            img.onerror = () => reject(new Error("decode"));
+            img.onload = () => {
+                const size   = CUSTOM_ICON_SIZE;
+                const canvas = document.createElement("canvas");
+                canvas.width = canvas.height = size;
+                const scale = Math.min(size / (img.naturalWidth || size), size / (img.naturalHeight || size));
+                const w = (img.naturalWidth || size) * scale, h = (img.naturalHeight || size) * scale;
+                canvas.getContext("2d").drawImage(img, (size - w) / 2, (size - h) / 2, w, h);
+                resolve(canvas.toDataURL("image/png"));
+            };
+            img.src = reader.result;
+        };
+        reader.readAsDataURL(file);
+    });
+}
+
 function loadCustomTools() {
     try { return JSON.parse(localStorage.getItem(CUSTOM_TOOLS_KEY) || "{}"); } catch { return {}; }
 }
@@ -801,6 +838,14 @@ function openCustomToolModal(type, onSaved, editSource) {
         <label class="modal-label">URL <span class="modal-hint">optionally use <code id="ctDataPlaceholder" title="Click to copy">{data}</code> as IoC placeholder</span>
             <input id="ctUrl" class="modal-input" style="margin-top:8px" type="text" placeholder="https://example.com/search?q={data}">
         </label>
+        <div class="modal-label">Icon <span class="modal-hint">optional — otherwise the site's own favicon is used</span>
+            <div class="ct-icon-row">
+                <img id="ctIconPreview" class="ct-icon-preview" alt="">
+                <button type="button" id="ctIconPick" class="modal-btn">Choose image…</button>
+                <button type="button" id="ctIconRemove" class="modal-btn modal-btn-cancel">Remove</button>
+                <input id="ctIconFile" type="file" accept="image/png,image/jpeg,image/gif,image/webp,image/svg+xml,image/x-icon,.ico" hidden>
+            </div>
+        </div>
         <label class="modal-label">IoC type(s)
             <div class="modal-checkbox-group" id="ctTypeGroup">
                 ${types.map(t => `
@@ -825,6 +870,35 @@ function openCustomToolModal(type, onSaved, editSource) {
         document.getElementById("ctName").value = editSource.name;
         document.getElementById("ctUrl").value  = editSource.url;
     }
+
+    // Icon: user upload (stored as a data URL) or, if none, the preview shows
+    // the site's own favicon, the same way the result card will.
+    let iconData = isValidIconData(editSource?.icon) ? editSource.icon : null;
+    const iconPreview = document.getElementById("ctIconPreview");
+    const iconRemove  = document.getElementById("ctIconRemove");
+    const iconFile    = document.getElementById("ctIconFile");
+    const refreshIconPreview = () => {
+        let host = "";
+        try { host = new URL(document.getElementById("ctUrl").value.trim().replaceAll("{data}", "x")).hostname; } catch {}
+        iconPreview.onerror = () => { iconPreview.onerror = null; iconPreview.src = GENERIC_TOOL_ICON; };
+        iconPreview.src = iconData || (host ? `https://${host}/favicon.ico` : GENERIC_TOOL_ICON);
+        iconRemove.style.display = iconData ? "" : "none";
+    };
+    refreshIconPreview();
+    document.getElementById("ctUrl").addEventListener("change", refreshIconPreview);
+    document.getElementById("ctIconPick").onclick = () => iconFile.click();
+    iconRemove.onclick = () => { iconData = null; refreshIconPreview(); };
+    iconFile.onchange = async () => {
+        const file = iconFile.files[0];
+        iconFile.value = "";
+        if (!file) return;
+        try {
+            iconData = await fileToIconData(file);
+            refreshIconPreview();
+        } catch {
+            showModalError(document.getElementById("ctError"), "Couldn't read that image. Try a PNG, JPG or SVG.");
+        }
+    };
 
     // {data} click to copy
     const dataTag = document.getElementById("ctDataPlaceholder");
@@ -857,7 +931,7 @@ function openCustomToolModal(type, onSaved, editSource) {
             showModalError(errEl, `A tool named "${name}" already exists for ${dupeIn.join(", ")}.`); return;
         }
 
-        selTypes.forEach(t => addCustomTool(t, { name, url }));
+        selTypes.forEach(t => addCustomTool(t, iconData ? { name, url, icon: iconData } : { name, url }));
         closeModal();
         renderLinks(currentRaw);
         showToast(editSource ? `"${name}" updated!` : `"${name}" added!`);
@@ -892,7 +966,10 @@ function buildToolMatrix() {
         getOrderedSources(type).forEach(src => {
             if (!matrix[src.name]) matrix[src.name] = { isCustom: false, types: new Set(), url: src.url };
             matrix[src.name].types.add(type);
-            if (src.custom) matrix[src.name].isCustom = true;
+            if (src.custom) {
+                matrix[src.name].isCustom = true;
+                if (src.icon) matrix[src.name].icon = src.icon;
+            }
         });
     });
     return matrix;
@@ -972,7 +1049,7 @@ function openManageToolsModal() {
                 editBtn.className   = "manage-tools-action-btn";
                 editBtn.title       = "Edit this tool";
                 editBtn.textContent = "✏️";
-                editBtn.onclick     = () => openCustomToolModal("all", renderRows, { name, url: matrix[name].url, types: typesArr });
+                editBtn.onclick     = () => openCustomToolModal("all", renderRows, { name, url: matrix[name].url, icon: matrix[name].icon, types: typesArr });
                 actionsCell.appendChild(editBtn);
 
                 const delBtn = document.createElement("button");

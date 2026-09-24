@@ -1198,6 +1198,22 @@ body.modern .modal-box {
     opacity: 0.8;
 }
 
+.ct-icon-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.ct-icon-preview {
+    width: 32px;
+    height: 32px;
+    object-fit: contain;
+    border-radius: 4px;
+    flex-shrink: 0;
+}
+
 .modal-hint {
     font-size: 0.85em;
     opacity: 0.6;
