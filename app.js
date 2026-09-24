@@ -1226,7 +1226,12 @@ function finishBoot() {
     document.getElementById("bootScreen").style.display = "none";
     appEl.style.display = "block";
     queryInput.focus();
-    loadNews();
+    // News (and its AdSense slots) must wait for window "load": the ads are
+    // pushed as the feed renders, and if that happens before adsbygoogle.js
+    // has loaded, AdSense's "auto" sizing overrides our CSS caps and the ad
+    // slot blows up in size.
+    if (document.readyState === "complete") loadNews();
+    else window.addEventListener("load", () => loadNews(), { once: true });
 }
 
 // Only play the boot animation on the first visit of the (local) day.
