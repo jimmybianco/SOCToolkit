@@ -570,9 +570,65 @@ body.modern .settings-accent-row { display: none; } /* accent color only applies
     color: rgb(var(--accent-r), var(--accent-g), var(--accent-b));
 }
 
+/* Open = full-height reader above the footer bar. --footer-bar-h is set from
+   JS because the bar can wrap to two lines on small screens. */
 #footerPanel.open {
-    max-height: 280px;
+    height: calc(100vh - var(--footer-bar-h, 36px));
+    height: calc(100dvh - var(--footer-bar-h, 36px));
+    max-height: calc(100vh - var(--footer-bar-h, 36px));
+    max-height: calc(100dvh - var(--footer-bar-h, 36px));
     overflow-y: auto;
+    border-top: none;
+    background: #000; /* opaque: nothing from the page shows through */
+}
+
+body.modern #footerPanel.open {
+    background: #f8fafc;
+}
+
+/* While reading, sit above the news ticker (500) and the cookie banner
+   (1100), below dialogs (9999). */
+#footerStack.reading {
+    z-index: 1200;
+}
+
+/* Sticky bar so "Close" stays reachable while scrolling a long policy. */
+.footer-panel-bar {
+    position: sticky;
+    top: 0;
+    display: flex;
+    justify-content: flex-end;
+    padding: 10px 16px;
+    background: #000;
+    border-bottom: 1px solid rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.2);
+}
+
+.footer-panel-close {
+    background: transparent;
+    border: 1px solid rgb(var(--accent-r), var(--accent-g), var(--accent-b));
+    border-radius: 4px;
+    color: inherit;
+    font: inherit;
+    padding: 4px 12px;
+    cursor: pointer;
+}
+
+.footer-panel-close:hover {
+    background: rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.15);
+}
+
+body.modern .footer-panel-bar {
+    background: #f8fafc;
+    border-bottom-color: rgba(15,23,42,0.1);
+}
+
+body.modern .footer-panel-close {
+    border-color: #6366f1;
+    color: #4338ca;
+}
+
+body.modern .footer-panel-close:hover {
+    background: rgba(99,102,241,0.1);
 }
 
 .footer-sections {

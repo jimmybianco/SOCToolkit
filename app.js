@@ -1767,31 +1767,37 @@ updateUTCClock();
 document.getElementById("currentYear").textContent = new Date().getFullYear();
 
 /* ================= FOOTER TOGGLE ================= */
+// About / Privacy / Terms / Contact / Cookies open as a full-height reader
+// above the footer bar, covering the page and the ticker. It closes with its
+// "✕ Close" button, Escape, or by clicking the same footer button again.
+const footerPanel = document.getElementById("footerPanel");
+
+function setFooterSection(targetId) {
+    const opening = !!targetId;
+    document.querySelectorAll(".footer-section").forEach(s => s.style.display = s.id === targetId ? "block" : "none");
+    document.querySelectorAll(".footer-btn[data-target]").forEach(b => b.classList.toggle("active", b.dataset.target === targetId));
+    // The footer bar can wrap to two lines on small screens: size the reader
+    // to whatever height it actually has.
+    footerPanel.style.setProperty("--footer-bar-h", `${document.getElementById("footerBar").offsetHeight}px`);
+    footerPanel.classList.toggle("open", opening);
+    document.getElementById("footerStack").classList.toggle("reading", opening);
+    if (opening) footerPanel.scrollTop = 0;
+}
+
 document.querySelectorAll(".footer-btn[data-target]").forEach(btn => {
     btn.addEventListener("click", () => {
-        const targetId = btn.dataset.target;
-        const section  = document.getElementById(targetId);
-        const panel    = document.getElementById("footerPanel");
-        const ticker   = document.getElementById("newsTicker");
-        const opening  = section.style.display !== "block";
-
-        document.querySelectorAll(".footer-section").forEach(s => s.style.display = "none");
-        document.querySelectorAll(".footer-btn[data-target]").forEach(b => b.classList.remove("active"));
-
-        if (opening) {
-            section.style.display = "block";
-            btn.classList.add("active");
-        }
-
-        // Measure actual content height before CSS transition kicks in
-        const panelH         = opening ? Math.min(panel.scrollHeight, FOOTER_PANEL_MAX_H) : 0;
-        _footerPanelOpen     = opening;
-        _footerPanelH        = panelH;
-        panel.classList.toggle("open", opening);
-
-        ticker.style.bottom  = (FOOTER_BAR_H + panelH) + "px";
-        document.body.style.paddingBottom = _tickerPaddingBottom();
+        const isOpen = document.getElementById(btn.dataset.target).style.display === "block";
+        setFooterSection(isOpen ? null : btn.dataset.target);
     });
+});
+
+document.getElementById("footerPanelClose").addEventListener("click", () => setFooterSection(null));
+
+document.addEventListener("keydown", e => {
+    // Leave Escape to any dialog (e.g. Manage tools) open on top.
+    if (e.key === "Escape" && footerPanel.classList.contains("open") && !document.querySelector(".modal-overlay")) {
+        setFooterSection(null);
+    }
 });
 /* ================= COOKIE CONSENT ================= */
 // Google Analytics is only loaded once the visitor accepts (see
@@ -2718,13 +2724,10 @@ function _applyTickerSpeed() {
 }
 
 const FOOTER_BAR_H  = 36;
-const FOOTER_PANEL_MAX_H = 280; // matches #footerPanel.open max-height
 let _savedTickerMode = null;
-let _footerPanelOpen = false;
-let _footerPanelH    = 0;
 
 function _tickerPaddingBottom() {
-    return `${(_tickerMode === "card" ? 170 : 62) + FOOTER_BAR_H + _footerPanelH}px`;
+    return `${(_tickerMode === "card" ? 170 : 62) + FOOTER_BAR_H}px`;
 }
 
 function _applyModeBtn() {
