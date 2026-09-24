@@ -63,7 +63,7 @@ No hay backend, no hay base de datos, no hay cuenta que crear. Todo corre en el 
 | 📰 **Panel de noticias de ciberseguridad** | Ticker y feed en vivo agregando RSS de The Hacker News, BleepingComputer, Securelist, Unit 42, CrowdStrike, Microsoft Security, The DFIR Report, entre otros — con filtros y refresco manual. |
 | ⚙️ **Exportar / importar configuración** | Backup y restauración de tus fuentes, orden y tema en un único archivo JSON. |
 | 🌓 **Theming & UX** | Tema claro/oscuro, fondo de partículas animado, boot screen estilo terminal y reloj UTC persistente. |
-| 🔒 **Privacidad por diseño** | Ningún dato ingresado se envía, registra ni almacena en servidores propios. Todo el procesamiento ocurre localmente en el navegador. |
+| 🔒 **Privacidad por diseño** | Sin backend: los indicadores se procesan en tu navegador y nunca se envían a servidores propios. Un valor solo sale del navegador cuando abrís un enlace de consulta a un servicio de terceros. |
 
 ---
 
@@ -161,7 +161,9 @@ open index.html   # o serví el sitio de forma estática, ej. `python3 -m http.s
 
 ## 🔒 Privacidad
 
-SOC Toolkit no recolecta, almacena ni transmite ningún dato ingresado por el usuario. Todo el procesamiento de indicadores ocurre localmente en el navegador. Se utiliza Google Analytics solo para estadísticas de uso anónimas y agregadas — nunca se comparte información ingresada por el usuario.
+Todo el procesamiento de indicadores ocurre en tu navegador; no hay backend y SOC Toolkit no almacena nada de lo que ingresás. Al abrir un enlace de consulta, el valor se envía a ese servicio de terceros como parte de la URL. Con tu consentimiento, Google Analytics mide el uso del sitio, incluidos los enlaces externos en los que hacés clic. Las fuentes y los íconos de las herramientas se alojan en el propio sitio.
+
+Consultá la [Política de Privacidad](https://soctoolkit.com) completa (footer → Privacy) para más detalles.
 
 ---
 

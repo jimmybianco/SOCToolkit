@@ -63,7 +63,7 @@ There is no backend, no database, and no account to create. Everything runs clie
 | 📰 **Security news feed** | Live ticker and feed aggregating RSS from The Hacker News, BleepingComputer, Securelist, Unit 42, CrowdStrike, Microsoft Security, The DFIR Report, and more — filterable, with manual refresh. |
 | ⚙️ **Export / import config** | Back up and restore your sources, ordering, and theme as a single JSON file. |
 | 🌓 **Theming & UX** | Light/dark theme, animated particle background, terminal-style boot screen, and a persistent UTC clock. |
-| 🔒 **Privacy by design** | No submitted data is sent to, logged by, or stored on any server. Everything runs locally in the browser. |
+| 🔒 **Privacy by design** | No backend: indicators are processed in your browser and never sent to our servers. A value only leaves your browser when you open a lookup link to a third-party service. |
 
 ---
 
@@ -161,7 +161,9 @@ open index.html   # or serve statically, e.g. `python3 -m http.server`
 
 ## 🔒 Privacy
 
-SOC Toolkit does not collect, store, or transmit any data entered by the user. All indicator processing happens locally in the browser. Google Analytics is used only for anonymous, aggregated usage statistics — no user-submitted data is ever shared with it.
+All indicator processing happens in your browser; there is no backend and nothing you enter is stored by SOC Toolkit. When you open a lookup link, the value is sent to that third-party service as part of the URL. With your consent, Google Analytics measures usage of the site, including the external links you click. Fonts and tool icons are self-hosted.
+
+See the full [Privacy Policy](https://soctoolkit.com) (footer → Privacy) for details.
 
 ---
 
