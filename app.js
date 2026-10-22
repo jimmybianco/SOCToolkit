@@ -2053,7 +2053,7 @@ const NEWS_SOURCES = [
 
 // Our Cloudflare Worker (worker/rss-proxy.js): returns the raw feed XML
 // with CORS headers; parseFeedXml turns it into items.
-const RSS_PROXY      = "https://soctoolkit-rss.jimmy-duarte-bianco.workers.dev/?url=";
+const RSS_PROXY      = "https://rss.soctoolkit.com/?url=";
 const NEWS_TTL_MS    = 5 * 60 * 60 * 1000; // 5 hours
 
 // "Advertise here" slots: a mailto link in place of real ads.
