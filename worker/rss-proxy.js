@@ -15,7 +15,9 @@ const CACHE_SECONDS = 30 * 60;          // edge cache per feed URL
 const MAX_BYTES     = 5 * 1024 * 1024;  // refuse anything bigger
 
 function corsHeaders(origin) {
-    const allowed = ALLOWED_ORIGINS.includes(origin) || /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin);
+    // "null" is index.html opened from disk (file://), for local testing.
+    const allowed = ALLOWED_ORIGINS.includes(origin) || origin === "null"
+        || /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin);
     return {
         "Access-Control-Allow-Origin": allowed ? origin : ALLOWED_ORIGINS[0],
         "Access-Control-Allow-Methods": "GET, OPTIONS",
