@@ -2050,7 +2050,9 @@ const NEWS_SOURCES = [
     { name: "CISA",             rss: "https://www.cisa.gov/cybersecurity-advisories/all.xml" },
 ];
 
-const RSS2JSON       = "https://api.rss2json.com/v1/api.json?rss_url=";
+// Our Cloudflare Worker (worker/rss-proxy.js): returns the raw feed XML
+// with CORS headers; parseFeedXml turns it into items.
+const RSS_PROXY      = "https://soctoolkit-rss.jimmy-duarte-bianco.workers.dev/?url=";
 const NEWS_TTL_MS    = 5 * 60 * 60 * 1000; // 5 hours
 
 // "Advertise here" slots: a mailto link in place of real ads.
@@ -2143,7 +2145,7 @@ function _lsKey(name) {
     return LS_FEED_PREFIX + name.replace(/\s+/g, "_");
 }
 
-// Feed items come from third parties (rss2json, user-added feeds), so only
+// Feed items come from third parties (news publishers, user-added feeds), so only
 // keep ones whose link is a real http(s) URL — never javascript:, data:, etc.,
 // and never a missing link that would resolve to a page on this site.
 function hasSafeLink(item) {
@@ -2175,6 +2177,74 @@ function storeAndMergeFeed(name, incoming) {
     return final;
 }
 
+const FEED_DESC_MAX = 400;
+
+// HTML from a feed → plain text. DOMParser documents are inert: no scripts
+// run and no images load.
+function feedHtmlDoc(html) {
+    return new DOMParser().parseFromString(html || "", "text/html");
+}
+
+// Parses RSS 2.0 / RSS 1.0 (RDF) / Atom XML into the item shape the news
+// code uses: { title, link, guid, pubDate, description, thumbnail }.
+// description is already plain text, trimmed to FEED_DESC_MAX.
+function parseFeedXml(xml) {
+    const doc = new DOMParser().parseFromString(xml, "application/xml");
+    if (doc.getElementsByTagName("parsererror").length) throw new Error("bad feed XML");
+
+    const kids = (el, name) => [...el.children].filter(c => c.nodeName === name);
+    const txt  = (el, ...names) => {
+        for (const n of names) {
+            const c = kids(el, n)[0];
+            if (c && c.textContent.trim()) return c.textContent.trim();
+        }
+        return "";
+    };
+    const httpUrl = u => (u && /^https?:\/\//i.test(u.trim()) ? u.trim() : "");
+
+    const isAtom = doc.documentElement.nodeName === "feed";
+    const nodes  = [...doc.getElementsByTagName(isAtom ? "entry" : "item")];
+
+    return nodes.map(el => {
+        let link;
+        if (isAtom) {
+            const links = kids(el, "link");
+            const alt   = links.find(l => !l.getAttribute("rel") || l.getAttribute("rel") === "alternate") || links[0];
+            link = alt ? alt.getAttribute("href") || "" : "";
+        } else {
+            link = txt(el, "link") || (kids(el, "guid")[0]?.getAttribute("isPermaLink") !== "false" ? txt(el, "guid") : "");
+        }
+
+        const contentHtml = txt(el, "content:encoded", "content");
+        const descHtml    = txt(el, "description", "summary") || contentHtml;
+        const description = feedHtmlDoc(descHtml).body.textContent.replace(/\s+/g, " ").trim().slice(0, FEED_DESC_MAX);
+
+        // Thumbnail: media:thumbnail / media:content / image enclosure,
+        // else the first <img> in the content.
+        let thumbnail = "";
+        for (const tag of ["media:thumbnail", "media:content", "enclosure"]) {
+            const m = [...el.getElementsByTagName(tag)].find(e => {
+                const type = e.getAttribute("type") || e.getAttribute("medium") || "";
+                return httpUrl(e.getAttribute("url")) && (tag === "media:thumbnail" || !type || /image/i.test(type));
+            });
+            if (m) { thumbnail = httpUrl(m.getAttribute("url")); break; }
+        }
+        if (!thumbnail) {
+            const img = feedHtmlDoc(contentHtml || descHtml).querySelector("img[src]");
+            thumbnail = httpUrl(img && img.getAttribute("src"));
+        }
+
+        return {
+            title:   txt(el, "title"),
+            link:    link.trim(),
+            guid:    txt(el, "guid", "id"),
+            pubDate: txt(el, "pubDate", "published", "updated", "dc:date"),
+            description,
+            thumbnail,
+        };
+    }).filter(it => it.title);
+}
+
 async function fetchFeed(source, forceRefresh = false) {
     const stored  = getStoredFeed(source.name);
     const isFresh = stored && (Date.now() - stored.ts < NEWS_TTL_MS);
@@ -2186,11 +2256,11 @@ async function fetchFeed(source, forceRefresh = false) {
     const controller = new AbortController();
     const tid = setTimeout(() => controller.abort(), 8000);
     try {
-        const res  = await fetch(RSS2JSON + encodeURIComponent(source.rss), { signal: controller.signal });
-        const data = await res.json();
+        const res  = await fetch(RSS_PROXY + encodeURIComponent(source.rss), { signal: controller.signal });
+        if (!res.ok) throw new Error(`proxy ${res.status}`);
+        const items = parseFeedXml(await res.text());
         clearTimeout(tid);
-        if (data.status !== "ok") throw new Error("bad status");
-        const merged = storeAndMergeFeed(source.name, data.items || []);
+        const merged = storeAndMergeFeed(source.name, items);
         return { source, items: merged, ok: true };
     } catch {
         clearTimeout(tid);
@@ -2212,7 +2282,7 @@ function parseNewsDate(str) {
     if (!str) return NaN;
     // Replace non-standard timezone abbreviations (e.g. CEST → +0200)
     let s = str.trim().replace(/\b([A-Z]{2,5})\b$/, m => TZ_MAP[m] || m);
-    // rss2json format: "2024-06-28 10:30:00" — normalize to ISO
+    // "2024-06-28 10:30:00" (no T / zone; old rss2json cache) — normalize to ISO
     if (/^\d{4}-\d{2}-\d{2} /.test(s)) {
         s = s.replace(" ", "T");
         if (!/[Z+\-]\d+$/.test(s)) s += "Z";
