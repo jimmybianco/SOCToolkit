@@ -2034,7 +2034,8 @@ window.addEventListener("load", () => {
 /* ================= NEWS FEED ================= */
 const NEWS_SOURCES = [
     { name: "The Hacker News",  rss: "https://feeds.feedburner.com/TheHackersNews" },
-    { name: "BleepingComputer", rss: "https://www.bleepingcomputer.com/feed/" },
+    { name: "Dark Reading",     rss: "https://www.darkreading.com/rss.xml" },
+    { name: "SecurityWeek",     rss: "https://www.securityweek.com/feed/" },
     { name: "HudsonRock",       rss: "https://www.infostealers.com/feed/" },
     { name: "Unit 42",          rss: "https://unit42.paloaltonetworks.com/feed/" },
     { name: "Microsoft",        rss: "https://www.microsoft.com/en-us/security/blog/topic/threat-intelligence/feed/" },

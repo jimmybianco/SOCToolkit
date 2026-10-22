@@ -60,7 +60,7 @@ There is no backend, no database, and no account to create. Everything runs clie
 | 🛡️ **Defang / normalize** | One-click conversion to `hxxp://evil[.]com` style, safe for pasting into tickets and reports. |
 | 🔓 **Open Unlocked** | Opens every unrestricted source for the current indicator in one click. |
 | 🧩 **Custom tools & feeds** | Add your own lookup sources or RSS feeds, and reorder everything via drag & drop (Sortable.js). |
-| 📰 **Security news feed** | Live ticker and feed aggregating RSS from The Hacker News, BleepingComputer, Securelist, Unit 42, CrowdStrike, Microsoft Security, The DFIR Report, and more — filterable, with manual refresh. |
+| 📰 **Security news feed** | Live ticker and feed aggregating RSS from The Hacker News, Dark Reading, SecurityWeek, Securelist, Unit 42, CrowdStrike, Microsoft Security, The DFIR Report, and more — filterable, with manual refresh. |
 | ⚙️ **Export / import config** | Back up and restore your sources, ordering, and theme as a single JSON file. |
 | 🌓 **Theming & UX** | Light/dark theme, animated particle background, terminal-style boot screen, and a persistent UTC clock. |
 | 🔒 **Privacy by design** | No backend: indicators are processed in your browser and never sent to our servers. A value only leaves your browser when you open a lookup link to a third-party service. |

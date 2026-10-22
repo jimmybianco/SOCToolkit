@@ -60,7 +60,7 @@ No hay backend, no hay base de datos, no hay cuenta que crear. Todo corre en el 
 | 🛡️ **Defanging / normalización** | Convierte el valor a formato `hxxp://evil[.]com` con un clic, listo para compartir en tickets y reportes. |
 | 🔓 **Open Unlocked** | Abre en un solo clic todas las fuentes no restringidas para el indicador analizado. |
 | 🧩 **Fuentes y herramientas personalizadas** | Agregá tus propias fuentes de lookup o feeds RSS, y reordená todo por drag & drop (Sortable.js). |
-| 📰 **Panel de noticias de ciberseguridad** | Ticker y feed en vivo agregando RSS de The Hacker News, BleepingComputer, Securelist, Unit 42, CrowdStrike, Microsoft Security, The DFIR Report, entre otros — con filtros y refresco manual. |
+| 📰 **Panel de noticias de ciberseguridad** | Ticker y feed en vivo agregando RSS de The Hacker News, Dark Reading, SecurityWeek, Securelist, Unit 42, CrowdStrike, Microsoft Security, The DFIR Report, entre otros — con filtros y refresco manual. |
 | ⚙️ **Exportar / importar configuración** | Backup y restauración de tus fuentes, orden y tema en un único archivo JSON. |
 | 🌓 **Theming & UX** | Tema claro/oscuro, fondo de partículas animado, boot screen estilo terminal y reloj UTC persistente. |
 | 🔒 **Privacidad por diseño** | Sin backend: los indicadores se procesan en tu navegador y nunca se envían a servidores propios. Un valor solo sale del navegador cuando abrís un enlace de consulta a un servicio de terceros. |
